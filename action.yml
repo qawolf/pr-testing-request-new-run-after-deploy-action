@@ -1,0 +1,33 @@
+name: QA Wolf PR Testing Notify Deploy
+description: Test pull request deployments using QA Wolf
+branding:
+  icon: "git-pull-request"
+  color: "purple"
+inputs:
+  qawolf-api-key:
+    description: QA Wolf API key. This can be found in the team Settings page.
+    required: true
+  base-environments-mapping:
+    required: true
+    description: >
+      A JSON-formatted array where each member defines a correspondence between a QA Wolf environment
+      and a VCS branch. E2E testing will only work when the base branch for a PR has a mapped environment alias.
+      Example: [{ "environmentAlias": "develop", "vcsBranch": "main" }]
+  head-environment-variables:
+    required: true
+    description: >
+      JSON-formatted environment variables including deployment locations.
+      Get help from a QA Wolf representative to determine which variables will
+      be required here, as each customer has its own deployment layout.
+      Example: { "URL": "https://pr-9888.preview.myapp.io" }
+  concurrency-limit:
+    required: false
+    description: >
+      A natural positive integer that defines the maximum number of concurrent
+      workflows that can be executed for this deployment. It will default to
+      the concurrency limit defined in the base environment.
+
+      Remark: 0 and Infinity are valid values and will disable concurrency limits.
+runs:
+  using: "node20"
+  main: "dist/index.js"

@@ -1,0 +1,4 @@
+*.tsbuildinfo
+/node_modules
+# GHAs require that all dependencies are included in the compiled code, so we need to include the dist folder.
+# dist

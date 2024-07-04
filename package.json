@@ -1,0 +1,30 @@
+{
+  "name": "@qawolf/pr-testing-request-new-run-after-deploy-action",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "engines": {
+    "node": "^18 || >=20"
+  },
+  "scripts": {
+    "gen": "npm run build",
+    "build": "ncc build src/index.ts -o dist",
+    "build:clean": "tsc --build --clean && rm -rf ./dist",
+    "lint": "eslint . --ext js,jsx,mjs,ts,tsx --max-warnings=0 && prettier --check .",
+    "lint:fix": "eslint . --ext js,jsx,mjs,ts,tsx --fix --max-warnings=0 && prettier --write .",
+    "test": "jest --passWithNoTests",
+    "test:watch": "npm run test -- --watch",
+    "tsc:check": "tsc"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "@octokit/webhooks-types": "^7.5.1",
+    "@qawolf/ci-sdk": "^0.15.6",
+    "@qawolf/ci-utils": "*",
+    "tslib": "^2.5.3",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.38.1"
+  }
+}
