@@ -40,7 +40,7 @@ export const validateInput = ():
     },
   );
   const headEnvironmentVariables = jsonEnvironmentVariablesSchema.safeParse(
-    JSON.parse(rawHeadEnvironmentVariables),
+    rawHeadEnvironmentVariables,
   );
   if (!headEnvironmentVariables.success) {
     return {

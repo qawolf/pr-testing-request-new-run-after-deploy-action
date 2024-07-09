@@ -33974,7 +33974,7 @@ const validateInput = () => {
     const rawHeadEnvironmentVariables = core.getInput("head-environment-variables", {
         required: true,
     });
-    const headEnvironmentVariables = ci_utils_1.jsonEnvironmentVariablesSchema.safeParse(JSON.parse(rawHeadEnvironmentVariables));
+    const headEnvironmentVariables = ci_utils_1.jsonEnvironmentVariablesSchema.safeParse(rawHeadEnvironmentVariables);
     if (!headEnvironmentVariables.success) {
         return {
             error: "Invalid 'head-environment-variables' input",
@@ -36048,7 +36048,7 @@ async function qawolfGraphql({ deps: { fetch: localFetch, log }, apiConfig: { ap
             throw new GraphQLBadResponseError(`[GraphQL] Unexpected response schema. Not valid JSON body.`);
         }
         if ("errors" in rawBody) {
-            const extensionsCodes = rawBody.errors.flatMap((error) => error.extensions?.map((ext) => ext.code) ?? []);
+            const extensionsCodes = rawBody.errors.flatMap((error) => error.extensions?.map?.((ext) => ext.code) ?? []);
             for (const error of rawBody.errors) {
                 log.warn(`❌ [GraphQL] error: ${error.message}`);
             }
