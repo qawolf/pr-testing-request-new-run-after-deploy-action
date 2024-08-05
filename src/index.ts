@@ -4,24 +4,34 @@ import { coreLogDriver, stringifyUnknown } from "@qawolf/ci-utils";
 
 import { extractRelevantDataFromEvent } from "./extractRelevantDataFromEvent";
 import { validateInput } from "./validateInput";
+import { validateSecrets } from "./validateSecret";
 
 async function runGitHubAction() {
-  const relevantEventData = extractRelevantDataFromEvent();
+  core.debug("Validating input.");
+  const validateInputResult = validateInput();
+
+  if (!validateInputResult.isValid) {
+    core.setFailed(`Input validation failed: ${validateInputResult.error}`);
+    return;
+  }
+
+  core.debug("Validating secret.");
+  const validateSecretsResult = validateSecrets();
+
+  if (!validateSecretsResult.isValid) {
+    core.setFailed(`Secrets validation failed: ${validateSecretsResult.error}`);
+    return;
+  }
+
+  core.debug("Extracting information from event.");
+  const relevantEventData = await extractRelevantDataFromEvent();
 
   if (!relevantEventData.isValid) {
     core.setFailed(`${relevantEventData.error}. Aborting`);
     return;
   }
 
-  core.debug("Validating input.");
-  const validationResult = validateInput();
-
-  if (!validationResult.isValid) {
-    core.setFailed(`Input validation failed: ${validationResult.error}`);
-    return;
-  }
-
-  const { apiKey } = validationResult;
+  const { apiKey } = validateInputResult;
   const { experimental_vcsBranchTesting } = makeQaWolfSdk(
     { apiKey },
     {
@@ -34,7 +44,7 @@ async function runGitHubAction() {
   core.info("Attempting to notify QA Wolf of deployment.");
   const deployResult = await notifyVCSBranchBuildDeployed({
     ...relevantEventData,
-    ...validationResult,
+    ...validateInputResult,
   });
 
   if (deployResult.outcome === "aborted") {

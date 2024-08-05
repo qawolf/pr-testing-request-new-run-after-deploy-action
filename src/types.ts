@@ -18,3 +18,7 @@ export const jsonConcurrentLimitSchema = z
     return parsed;
   })
   .pipe(concurrentLimitSchema);
+
+export const githubTokenSchema = z
+  .string()
+  .min(1, { message: "Github Token is not defined" });

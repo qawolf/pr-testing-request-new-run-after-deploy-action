@@ -1,5 +1,6 @@
 {
   "name": "@qawolf/pr-testing-request-new-run-after-deploy-action",
+  "version": "v1.0.2",
   "type": "commonjs",
   "main": "dist/index.js",
   "engines": {
@@ -19,10 +20,10 @@
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
     "@octokit/webhooks-types": "^7.5.1",
-    "@qawolf/ci-sdk": "^0.15.8",
+    "@qawolf/ci-sdk": "*",
     "@qawolf/ci-utils": "*",
     "tslib": "^2.5.3",
-    "zod": "^3.22.4"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.1"
