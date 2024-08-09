@@ -75,7 +75,7 @@ jobs:
           (github.event_name == 'pull_request' || github.event_name == 'pull_request_target')
           && github.action != 'closed'
           }}
-        uses: qawolf/pr-testing-request-new-run-after-deploy-action
+        uses: qawolf/pr-testing-request-new-run-after-deploy-action@v1.0.2
         with:
           qawolf-api-key: "${{ secrets.QAWOLF_API_KEY }}"
           # Requires the previous step to output JSON-formatted environment variables
@@ -115,7 +115,7 @@ jobs:
         if: ${{
           contains(github.event.pull_request.labels.*.name, 'pr-testing')
           }}
-        uses: qawolf/pr-testing-request-new-run-after-deploy-action
+        uses: qawolf/pr-testing-request-new-run-after-deploy-action@v1.0.2
         with:
           qawolf-api-key: "${{ secrets.QAWOLF_API_KEY }}"
           head-environment-variables: ${{ needs.deploy-preview-environmnent.outputs.environment-variables }}
@@ -152,7 +152,7 @@ jobs:
           !github.event.pull_request.draft
           )
           }}
-        uses: qawolf/pr-testing-request-new-run-after-deploy-action
+        uses: qawolf/pr-testing-request-new-run-after-deploy-action@v1.0.2
         with:
           qawolf-api-key: "${{ secrets.QAWOLF_API_KEY }}"
           head-environment-variables: ${{ needs.deploy-preview-environmnent.outputs.environment-variables }}
