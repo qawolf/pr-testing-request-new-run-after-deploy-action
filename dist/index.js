@@ -40648,6 +40648,49 @@ async function postDeploySuccess({ apiKey, serviceBase }, { branch, commitUrl, d
 
 /***/ }),
 
+/***/ 8048:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.callGenerateSignedUrlForTempTeamStorage = callGenerateSignedUrlForTempTeamStorage;
+async function callGenerateSignedUrlForTempTeamStorage({ apiKey, serviceBase }, { destinationFilePath }, { fetch: localFetch }) {
+    try {
+        const response = await localFetch(new URL(`${serviceBase}/api/v0/team-storage-signed-url?file=${destinationFilePath}`), {
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Content-Type": "application/json",
+            },
+            method: "GET",
+        });
+        if (response.status === 200) {
+            const json = (await response.json());
+            return {
+                fileLocation: json.fileLocation,
+                playgroundFileLocation: json.playgroundFileLocation,
+                signedUrl: json.signedUrl,
+                success: true,
+            };
+        }
+        else {
+            const error = await response.text();
+            console.log(`ERROR: ${error}`);
+            return {
+                success: false,
+            };
+        }
+    }
+    catch (e) {
+        return {
+            success: false,
+        };
+    }
+}
+//# sourceMappingURL=generate-signed-url-for-team-storage.js.map
+
+/***/ }),
+
 /***/ 406:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -40968,6 +41011,37 @@ async function attemptNotifyDeploy(deps, apiConfig, config) {
     };
 }
 //# sourceMappingURL=attempt-deploy.js.map
+
+/***/ }),
+
+/***/ 5592:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.generateSignedUrlForTempTeamStorage = generateSignedUrlForTempTeamStorage;
+const generate_signed_url_for_team_storage_1 = __nccwpck_require__(8048);
+async function generateSignedUrlForTempTeamStorage(deps, apiConfig, config) {
+    const { log } = deps;
+    if (!config.destinationFilePath) {
+        log.error(`🚫 destinationFilePath is a required config parameter`);
+        return { success: false };
+    }
+    const responseState = await (0, generate_signed_url_for_team_storage_1.callGenerateSignedUrlForTempTeamStorage)(apiConfig, config, deps);
+    if (!responseState.success) {
+        log.error(`🚫 Failed to generate signed URL for team storage. Please contact support.`);
+        return { success: false };
+    }
+    log.info(`✅ Generated Signed Upload URL: ${responseState.signedUrl}.`);
+    return {
+        fileLocation: responseState.fileLocation,
+        playgroundFileLocation: responseState.playgroundFileLocation,
+        success: true,
+        uploadUrl: responseState.signedUrl,
+    };
+}
+//# sourceMappingURL=generate-signed-url-for-team-storage.js.map
 
 /***/ }),
 
@@ -42217,6 +42291,7 @@ const fetch_1 = __nccwpck_require__(3704);
 const log_1 = __nccwpck_require__(4734);
 const serviceBase_1 = __nccwpck_require__(1919);
 const attempt_deploy_1 = __nccwpck_require__(289);
+const generate_signed_url_for_team_storage_1 = __nccwpck_require__(5592);
 const index_1 = __nccwpck_require__(4500);
 const poll_ci_greenlight_1 = __nccwpck_require__(9218);
 const vcsBranchTesting_1 = __nccwpck_require__(2799);
@@ -42242,6 +42317,7 @@ We recommend 'undici' package for that purpose. See the Requirement section of o
          */
         experimental_testPreview: index_1.testPreview.bind(null, deps, apiConfig),
         experimental_vcsBranchTesting: (0, vcsBranchTesting_1.makeVCSBranchTestingSDK)(apiConfig, deps),
+        generateSignedUrlForTempTeamStorage: generate_signed_url_for_team_storage_1.generateSignedUrlForTempTeamStorage.bind(null, deps, apiConfig),
         pollCiGreenlightStatus: poll_ci_greenlight_1.pollCiGreenlightStatus.bind(null, deps, apiConfig),
     };
 }
