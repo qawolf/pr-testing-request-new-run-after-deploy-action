@@ -1,5 +1,6 @@
 import * as core from "@actions/core";
-import { type NotifyBuildDeployedInput } from "@qawolf/ci-sdk/src/lib/sdk/domain/vcsBranchTesting/notify-vcs-branch-build-deployed";
+
+import { type NotifyBuildDeployedInput } from "@qawolf/ci-sdk";
 import {
   jsonEnvironmentsMappingSchema,
   jsonEnvironmentVariablesSchema,
@@ -10,7 +11,7 @@ import { jsonConcurrentLimitSchema } from "./types";
 type ActionInputs = Pick<
   NotifyBuildDeployedInput,
   "baseEnvironmentsMapping" | "concurrencyLimit" | "headEnvironmentVariables"
-> & { apiKey: string };
+> & { apiKey: string; qawolfBaseUrl: string | undefined };
 
 export const validateInput = ():
   | (ActionInputs & { isValid: true })
@@ -20,18 +21,12 @@ export const validateInput = ():
   const rawBaseEnvironmentsMapping = core.getInput(
     "base-environments-mapping",
     {
-      required: true,
+      required: false,
     },
   );
   const baseEnvironmentsMapping = jsonEnvironmentsMappingSchema.safeParse(
     rawBaseEnvironmentsMapping,
   );
-  if (!baseEnvironmentsMapping.success) {
-    return {
-      error: "Invalid 'base-environments-mapping' input",
-      isValid: false,
-    };
-  }
 
   const rawHeadEnvironmentVariables = core.getInput(
     "head-environment-variables",
@@ -59,11 +54,16 @@ export const validateInput = ():
     };
   }
 
+  // NOTE: Returns an empty string if the value is not defined.
+  const rawQawolfBaseUrl = core.getInput("qawolf-base-url").trim();
+  const qawolfBaseUrl = rawQawolfBaseUrl || undefined;
+
   return {
     apiKey: qawolfApiKey,
-    baseEnvironmentsMapping: baseEnvironmentsMapping.data,
+    baseEnvironmentsMapping: baseEnvironmentsMapping.data ?? [],
     concurrencyLimit: concurrencyLimit.data,
     headEnvironmentVariables: headEnvironmentVariables.data,
     isValid: true,
+    qawolfBaseUrl,
   };
 };
