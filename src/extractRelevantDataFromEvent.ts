@@ -7,7 +7,6 @@ import {
   type Repository,
   type SimplePullRequest,
 } from "@octokit/webhooks-types";
-
 import {
   type NotifyBuildDeployedInput,
   pullRequestDetailsToEnvironmentAlias,
@@ -34,7 +33,7 @@ export const extractRelevantDataFromEvent =
       github.context.eventName !== "pull_request" &&
       github.context.eventName !== "pull_request_target" &&
       github.context.eventName !== "deployment_status"
-    ) {
+    )
       return {
         error:
           "This action requires to be run in a GitHub Workflow subscribing exclusively to 'pull_request', 'pull_request_target' or 'deployment_status' events. " +
@@ -43,10 +42,10 @@ export const extractRelevantDataFromEvent =
           "For more info on deployment_status events, see https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#deployment_status",
         isValid: false,
       };
-    }
 
-    if (github.context.eventName === "deployment_status")
+    if (github.context.eventName === "deployment_status") {
       return extractRelevantDataFromDeployment();
+    }
 
     return extractRelevantDataFromPullRequest();
   };

@@ -8,7 +8,7 @@ inputs:
     description: QA Wolf API key. This can be found in the team Settings page.
     required: true
   base-environments-mapping:
-    required: false
+    required: true
     description: >
       A JSON-formatted array where each member defines a correspondence between a QA Wolf environment
       and a VCS branch. E2E testing will only work when the base branch for a PR has a mapped environment alias.
@@ -28,10 +28,6 @@ inputs:
       the concurrency limit defined in the base environment.
 
       Remark: 0 and Infinity are valid values and will disable concurrency limits.
-  qawolf-base-url:
-    required: false
-    description: >
-      The base URL of the QA Wolf API.
 runs:
   using: "node20"
   main: "dist/index.js"
