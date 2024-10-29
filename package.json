@@ -1,6 +1,6 @@
 {
   "name": "@qawolf/pr-testing-request-new-run-after-deploy-action",
-  "version": "v1.0.3",
+  "version": "v1.0.4",
   "type": "commonjs",
   "main": "dist/index.js",
   "engines": {
@@ -8,10 +8,11 @@
   },
   "scripts": {
     "gen": "npm run build",
-    "build": "ncc build src/index.ts -o dist",
+    "build": "cp tsconfig.json tsconfig.json.bak && cp tsconfig.build.json tsconfig.json && ncc build src/index.ts -o dist ; mv tsconfig.json.bak tsconfig.json",
     "build:clean": "tsc --build --clean && rm -rf ./dist",
     "lint": "eslint . --ext js,jsx,mjs,ts,tsx --quiet && prettier --check .",
-    "lint:fix": "eslint . --ext js,jsx,mjs,ts,tsx --fix --quiet && prettier --write .",
+    "lint:fix": "eslint . --ext js,jsx,mjs,ts,tsx --fix --quiet && prettier --log-level=warn --write .",
+    "lint:warnings": "eslint . --ext js,jsx,mjs,ts,tsx",
     "test": "jest --passWithNoTests",
     "test:watch": "npm run test -- --watch",
     "tsc:check": "tsc"
