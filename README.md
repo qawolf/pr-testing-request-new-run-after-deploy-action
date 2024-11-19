@@ -10,16 +10,6 @@ This is a GitHub Action for PR testing with QA Wolf. It is intended to be used i
 
 **Required**. The QA Wolf API key. You can find your API key on the [QA Wolf settings page](https://app.qawolf.com/settings).
 
-### `base-environments-mapping`
-
-**Required**. A JSON-formatted array that defines the relationships between QA Wolf environments and Version Control System (VCS) branches. QA Wolf environment identifiers are called "environment aliases" and can be retrieved from the "General" tab on the environment settings page in QA Wolf. The recommended format for an environment alias is `<organization-name>/<repo-name>/<branch-name>`.
-
-In this example, the mapping indicates that the "develop" QA Wolf environment corresponds to the "main" VCS branch:
-
-```json
-[{ "environmentAlias": "develop", "vcsBranch": "main" }]
-```
-
 ### `head-environment-variables`
 
 **Required**. JSON-formatted environment variables including deployment locations. Get help from a QA Wolf representative to determine which variables will be required here, as each customer has its own deployment layout.
@@ -35,6 +25,16 @@ In this example, the JSON object indicates that QA Wolf can reach your deployed 
 ### `concurrency-limit`
 
 A positive number representing the maximum number of concurrent workflows that can be executed at once. It will default to the concurrency limit defined in the base environment. If you are unsure about this value, you can leave it empty.
+
+### `base-environments-mapping`
+
+A JSON-formatted array that defines the relationships between QA Wolf environments and Version Control System (VCS) branches. QA Wolf environment identifiers are called "environment aliases" and can be retrieved from the "General" tab on the environment settings page in QA Wolf. The recommended format for an environment alias is `<organization-name>/<repo-name>/<branch-name>`.
+
+In this example, the mapping indicates that the "develop" QA Wolf environment corresponds to the "main" VCS branch:
+
+```json
+[{ "environmentAlias": "develop", "vcsBranch": "main" }]
+```
 
 ## Secrets
 
@@ -79,14 +79,10 @@ jobs:
         with:
           qawolf-api-key: "${{ secrets.QAWOLF_API_KEY }}"
           # Requires the previous step to output JSON-formatted environment variables
-          head-environment-variables: ${{ needs.deploy-preview-environmnent.outputs.environment-variables }}
-          # A typical Gitflow mapping. This is very dependent on your branching
-          # and release models.
-          base-environments-mapping: |
-            [
-              { "environmentAlias": "develop", "vcsBranch": "develop" },
-              { "environmentAlias": "production", "vcsBranch": "main" }
-            ]
+          head-environment-variables: |
+            {
+              "URL": "${{ needs.deploy-preview-environmnent.outputs.environment-variables.URL }}"
+            }
 ```
 
 ### Trigger action when a `pr-testing` label is applied
@@ -118,12 +114,10 @@ jobs:
         uses: qawolf/pr-testing-request-new-run-after-deploy-action@v1
         with:
           qawolf-api-key: "${{ secrets.QAWOLF_API_KEY }}"
-          head-environment-variables: ${{ needs.deploy-preview-environmnent.outputs.environment-variables }}
-          base-environments-mapping: |
-            [
-              { "environmentAlias": "develop", "vcsBranch": "develop" },
-              { "environmentAlias": "production", "vcsBranch": "main" }
-            ]
+          head-environment-variables: |
+            {
+              "URL": "${{ needs.deploy-preview-environmnent.outputs.environment-variables.URL }}"
+            }
 ```
 
 ### Trigger when a PR is ready for review
@@ -155,12 +149,10 @@ jobs:
         uses: qawolf/pr-testing-request-new-run-after-deploy-action@v1
         with:
           qawolf-api-key: "${{ secrets.QAWOLF_API_KEY }}"
-          head-environment-variables: ${{ needs.deploy-preview-environmnent.outputs.environment-variables }}
-          base-environments-mapping: |
-            [
-              { "environmentAlias": "develop", "vcsBranch": "develop" },
-              { "environmentAlias": "production", "vcsBranch": "main" }
-            ]
+          head-environment-variables: |
+            {
+              "URL": "${{ needs.deploy-preview-environmnent.outputs.environment-variables.URL }}"
+            }
 ```
 
 ### Trigger action on `deployment_status` events
@@ -188,12 +180,6 @@ jobs:
             {
               "URL": "${{ github.event.deployment_status.target_url }}"
             }
-          # See above on how to create the base-environments-mapping
-          base-environments-mapping: |
-            [
-              { "environmentAlias": "develop", "vcsBranch": "develop" },
-              { "environmentAlias": "production", "vcsBranch": "main" }
-            ]
         secrets:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```

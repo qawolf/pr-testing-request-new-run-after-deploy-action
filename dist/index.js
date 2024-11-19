@@ -34174,7 +34174,7 @@ exports.jsonConcurrentLimitSchema = zod_1.z
     if (str === "Infinity")
         return 0;
     const parsed = parseInt(str);
-    if (isNaN(parsed) || parsed < 0) {
+    if (Number.isNaN(parsed) || parsed < 0) {
         ctx.addIssue({
             code: "custom",
             message: "input is not a valid number",
@@ -36197,18 +36197,25 @@ async function fetchCiGreenlightStatus({ apiKey, serviceBase }, { runId, }, { fe
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.postDeploySuccess = postDeploySuccess;
-async function postDeploySuccess({ apiKey, serviceBase }, { branch, commitUrl, deduplicationKey, deploymentType, deploymentUrl, hostingService, sha, variables, }, { fetch: localFetch }) {
+async function postDeploySuccess({ apiKey, serviceBase }, deployConfig, { fetch: localFetch }) {
     try {
         const response = await localFetch(new URL("/api/webhooks/deploy_success", serviceBase), {
             body: JSON.stringify({
-                branch,
-                commit_url: commitUrl,
-                deduplication_key: deduplicationKey,
-                deployment_type: deploymentType,
-                deployment_url: deploymentUrl,
-                hosting_service: hostingService,
-                sha,
-                variables,
+                branch: deployConfig.branch,
+                commit_url: deployConfig.commitUrl,
+                deduplication_key: deployConfig.deduplicationKey,
+                deployment_type: deployConfig.deploymentType,
+                deployment_url: deployConfig.deploymentUrl,
+                hosting_service: deployConfig.hostingService,
+                merge_request_number: deployConfig.hostingService === "GitLab"
+                    ? deployConfig.mergeRequestNumber
+                    : undefined,
+                pull_request_number: deployConfig.hostingService === "GitHub"
+                    ? deployConfig.pullRequestNumber
+                    : undefined,
+                repository: deployConfig.repository,
+                sha: deployConfig.sha,
+                variables: deployConfig.variables,
             }),
             headers: {
                 Authorization: `Bearer ${apiKey}`,
@@ -36987,8 +36994,7 @@ exports.deleteEnvironmentAction = deleteEnvironmentAction;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.findOrCreateEnvironment = findOrCreateEnvironment;
 const constants_1 = __nccwpck_require__(9894);
-// Migration debt, clean up when convenient
-// eslint-disable-next-line @qawolf/restrict-names
+// eslint-disable-next-line @qawolf/restrict-names -- Migration debt, clean up when convenient
 async function findOrCreateEnvironment(deps, apiConfig, { baseEnvironmentId, branch, pr, qaWolfTeamId, }) {
     const retrievalResponse = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
         body: JSON.stringify({
@@ -37146,8 +37152,7 @@ async function findOrCreateEnvironment(deps, apiConfig, { baseEnvironmentId, bra
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.findOrCreateTrigger = findOrCreateTrigger;
 const constants_1 = __nccwpck_require__(9894);
-// Migration debt, clean up when convenient
-// eslint-disable-next-line @qawolf/restrict-names
+// eslint-disable-next-line @qawolf/restrict-names -- Migration debt, clean up when convenient
 async function findOrCreateTrigger(deps, apiConfig, args) {
     const { branch, environmentId, pr, qaWolfTeamId, repositoryId, tags } = args;
     const triggerName = `Deployments of ${pr ? `PR #${pr.number} - ${pr.title}` : `branch ${branch}`}`;
@@ -37474,7 +37479,7 @@ const safeDefaults = {
     runInProgressInterval: 30 * 1000,
     runUnderReviewInterval: 60 * 1000,
 };
-async function pollCiGreenlightStatus(deps, apiConfig, { onRunStageChanged: onRunStageChanged = () => void 0, runId, ...pollConfig }) {
+async function pollCiGreenlightStatus(deps, apiConfig, { onRunStageChanged: onRunStageChanged = () => undefined, runId, ...pollConfig }) {
     let retries = 0;
     const { log } = deps;
     const { abortOnSuperseded = safeDefaults.abortOnSuperseded, maxRetries = safeDefaults.maxRetries, pollTimeout = safeDefaults.pollTimeout, retryInterval = safeDefaults.retryInterval, runInProgressInterval = safeDefaults.runInProgressInterval, runUnderReviewInterval = safeDefaults.runUnderReviewInterval, } = pollConfig;
@@ -37691,14 +37696,20 @@ exports.domainFailureToAbortResult = domainFailureToAbortResult;
 const utils_1 = __nccwpck_require__(4793);
 function domainFailureToAbortResult({ log, methodName, result, }) {
     switch (result.failureCode) {
-        case "run-creation-failed":
-            log.error(`❌ [${methodName}] Run creation failed: ${result.failureDetails}. Aborting.`);
+        case "base-environment-not-found":
+            log.error(`❌ [${methodName}] Base environment not found. Aborting.`);
             return {
                 abortReason: result.failureCode,
                 outcome: "aborted",
             };
-        case "base-environment-not-found":
-            log.error(`❌ [${methodName}] Base environment not found. Aborting.`);
+        case "base-trigger-not-found":
+            log.error(`❌ [${methodName}] Base trigger not found. A QA Wolf representative should set this up for you. Aborting.`);
+            return {
+                abortReason: result.failureCode,
+                outcome: "aborted",
+            };
+        case "head-environment-not-found":
+            log.error(`❌ [${methodName}] Head environment not found. Aborting.`);
             return {
                 abortReason: result.failureCode,
                 outcome: "aborted",
@@ -37721,14 +37732,8 @@ function domainFailureToAbortResult({ log, methodName, result, }) {
                 abortReason: result.failureCode,
                 outcome: "aborted",
             };
-        case "base-trigger-not-found":
-            log.error(`❌ [${methodName}] Base trigger not found. A QA Wolf representative should set this up for you. Aborting.`);
-            return {
-                abortReason: result.failureCode,
-                outcome: "aborted",
-            };
-        case "head-environment-not-found":
-            log.error(`❌ [${methodName}] Head environment not found. Aborting.`);
+        case "run-creation-failed":
+            log.error(`❌ [${methodName}] Run creation failed: ${result.failureDetails}. Aborting.`);
             return {
                 abortReason: result.failureCode,
                 outcome: "aborted",
@@ -37752,21 +37757,21 @@ exports.graphQLErrorToAbortResult = graphQLErrorToAbortResult;
 const utils_1 = __nccwpck_require__(4793);
 function graphQLErrorToAbortResult({ graphQLPayload, log, methodName, }) {
     switch (graphQLPayload.errorCode) {
-        case "forbidden":
-            log.error(`❌ [${methodName}] Forbidden. Aborting.`);
-            return { abortReason: "forbidden", outcome: "aborted" };
-        case "unauthenticated":
-            log.error(`❌ [${methodName}] Unauthenticated. Aborting.`);
-            return { abortReason: "unauthenticated", outcome: "aborted" };
-        case "network-error":
-            log.error(`❌ [${methodName}] Network error. Aborting.`);
-            return { abortReason: "network-error", outcome: "aborted" };
-        case "internal":
-        case "unknown":
-            return { abortReason: "server-error", outcome: "aborted" };
         case "bad-input":
             log.error(`❌ [${methodName}] Bad GraphQL input. This is a bug. Aborting.`);
             return { abortReason: "invalid-input", outcome: "aborted" };
+        case "forbidden":
+            log.error(`❌ [${methodName}] Forbidden. Aborting.`);
+            return { abortReason: "forbidden", outcome: "aborted" };
+        case "internal":
+        case "unknown":
+            return { abortReason: "server-error", outcome: "aborted" };
+        case "network-error":
+            log.error(`❌ [${methodName}] Network error. Aborting.`);
+            return { abortReason: "network-error", outcome: "aborted" };
+        case "unauthenticated":
+            log.error(`❌ [${methodName}] Unauthenticated. Aborting.`);
+            return { abortReason: "unauthenticated", outcome: "aborted" };
         default:
             (0, utils_1.assertType)(graphQLPayload.errorCode);
             throw Error("Unreachable code detected. This is a bug.");
@@ -37829,7 +37834,8 @@ async function runNotifyVCSBranchBuildDeployedOnce(deps, apiConfig, input) {
     if (typeof concurrencyLimit === "number") {
         if (concurrencyLimit === Infinity)
             finalConcurrencyLimit = 0;
-        else if (isNaN(concurrencyLimit) || !Number.isInteger(concurrencyLimit)) {
+        else if (Number.isNaN(concurrencyLimit) ||
+            !Number.isInteger(concurrencyLimit)) {
             log.error(`❌ [notifyVCSBranchBuildDeployed] Invalid concurrency limit '${concurrencyLimit}'. Must be a positive integer.`);
             return {
                 abortReason: "invalid-input",

@@ -1,6 +1,6 @@
 {
   "name": "@qawolf/pr-testing-request-new-run-after-deploy-action",
-  "version": "v1.0.4",
+  "version": "v1.0.5",
   "type": "commonjs",
   "main": "dist/index.js",
   "engines": {

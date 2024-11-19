@@ -7,7 +7,7 @@ export const jsonConcurrentLimitSchema = z
     if (str === "") return undefined;
     if (str === "Infinity") return 0;
     const parsed = parseInt(str);
-    if (isNaN(parsed) || parsed < 0) {
+    if (Number.isNaN(parsed) || parsed < 0) {
       ctx.addIssue({
         code: "custom",
         message: "input is not a valid number",
