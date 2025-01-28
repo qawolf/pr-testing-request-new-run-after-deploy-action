@@ -86,6 +86,7 @@ export const extractRelevantDataFromDeployment =
       };
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Technical debt
     const octokit = github.getOctokit(process.env.GITHUB_TOKEN!);
 
     const { data: pullRequests } =

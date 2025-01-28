@@ -1,6 +1,6 @@
 {
   "name": "@qawolf/pr-testing-request-new-run-after-deploy-action",
-  "version": "v1.0.5",
+  "version": "v1.1.0",
   "type": "commonjs",
   "main": "dist/index.js",
   "engines": {
@@ -10,7 +10,7 @@
     "gen": "npm run build",
     "build": "cp tsconfig.json tsconfig.json.bak && cp tsconfig.build.json tsconfig.json && ncc build src/index.ts -o dist ; mv tsconfig.json.bak tsconfig.json",
     "build:clean": "tsc --build --clean && rm -rf ./dist",
-    "lint": "eslint . --ext js,jsx,mjs,ts,tsx --quiet && prettier --check .",
+    "lint": "cycle-import-scan . && eslint . --ext js,jsx,mjs,ts,tsx --quiet && prettier --check .",
     "lint:fix": "eslint . --ext js,jsx,mjs,ts,tsx --fix --quiet && prettier --log-level=warn --write .",
     "lint:warnings": "eslint . --ext js,jsx,mjs,ts,tsx",
     "test": "jest --passWithNoTests",
@@ -20,7 +20,7 @@
   "dependencies": {
     "@actions/core": "^1.10.1",
     "@actions/github": "^6.0.0",
-    "@octokit/webhooks-types": "^7.5.1",
+    "@octokit/webhooks-types": "^7.6.1",
     "@qawolf/ci-sdk": "*",
     "@qawolf/ci-utils": "*",
     "tslib": "^2.5.3",
@@ -28,5 +28,14 @@
   },
   "devDependencies": {
     "@vercel/ncc": "^0.38.1"
+  },
+  "nx": {
+    "targets": {
+      "lint": {
+        "dependsOn": [
+          "build"
+        ]
+      }
+    }
   }
 }

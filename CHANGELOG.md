@@ -1,3 +1,7 @@
+## v1.1.0
+
+- Add deprecation notice
+
 ## v1.0.5
 
 - Update README.md

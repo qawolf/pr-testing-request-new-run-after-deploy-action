@@ -29842,7 +29842,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getErrorMap = exports.setErrorMap = exports.defaultErrorMap = void 0;
-const en_1 = __importDefault(__nccwpck_require__(3803));
+const en_1 = __importDefault(__nccwpck_require__(6852));
 exports.defaultErrorMap = en_1.default;
 let overrideErrorMap = en_1.default;
 function setErrorMap(map) {
@@ -29910,7 +29910,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isAsync = exports.isValid = exports.isDirty = exports.isAborted = exports.OK = exports.DIRTY = exports.INVALID = exports.ParseStatus = exports.addIssueToContext = exports.EMPTY_PATH = exports.makeIssue = void 0;
 const errors_1 = __nccwpck_require__(5681);
-const en_1 = __importDefault(__nccwpck_require__(3803));
+const en_1 = __importDefault(__nccwpck_require__(6852));
 const makeIssue = (params) => {
     const { data, path, errorMaps, issueData } = params;
     const fullPath = [...path, ...(issueData.path || [])];
@@ -30229,7 +30229,7 @@ exports["default"] = z;
 
 /***/ }),
 
-/***/ 3803:
+/***/ 6852:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
@@ -34061,7 +34061,7 @@ exports.extractRelevantDataFromDeployment = exports.extractRelevantDataFromPullR
 const tslib_1 = __nccwpck_require__(36);
 const core = tslib_1.__importStar(__nccwpck_require__(7117));
 const github = tslib_1.__importStar(__nccwpck_require__(4005));
-const ci_sdk_1 = __nccwpck_require__(5998);
+const ci_sdk_1 = __nccwpck_require__(46);
 const extractRelevantDataFromEvent = async () => {
     if (github.context.eventName !== "pull_request" &&
         github.context.eventName !== "pull_request_target" &&
@@ -34106,6 +34106,7 @@ const extractRelevantDataFromDeployment = async () => {
             isValid: false,
         };
     }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion -- Technical debt
     const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
     const { data: pullRequests } = await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
         commit_sha: event.deployment.sha,
@@ -36119,921 +36120,448 @@ module.exports = parseParams
 
 /***/ }),
 
-/***/ 5998:
+/***/ 46:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const tslib_1 = __nccwpck_require__(36);
-tslib_1.__exportStar(__nccwpck_require__(9253), exports);
-tslib_1.__exportStar(__nccwpck_require__(3907), exports);
-//# sourceMappingURL=index.js.map
 
-/***/ }),
+var slugify = __nccwpck_require__(2283);
 
-/***/ 2704:
-/***/ ((__unused_webpack_module, exports) => {
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
 
-"use strict";
+var slugify__default = /*#__PURE__*/_interopDefault(slugify);
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.fetchCiGreenlightStatus = fetchCiGreenlightStatus;
-async function fetchCiGreenlightStatus({ apiKey, serviceBase }, { runId, }, { fetch: localFetch }) {
-    try {
-        const resp = await localFetch(new URL(`/api/v0/ci-greenlight/${encodeURIComponent(runId)}`, serviceBase), {
-            headers: {
-                Authorization: `Bearer ${apiKey}`,
-            },
-        });
-        if (resp.ok) {
-            const greenlightStatus = (await resp.json());
-            return {
-                greenlightStatus,
-                httpStatus: resp.status,
-                ok: true,
-            };
-        }
-        if (resp.status === 404) {
-            return {
-                canRetry: true,
-                errorType: "not-found",
-                httpStatus: resp.status,
-                ok: false,
-            };
-        }
-        if (resp.status >= 500) {
-            return {
-                canRetry: true,
-                errorType: "server",
-                httpStatus: resp.status,
-                ok: false,
-            };
-        }
-        return {
-            canRetry: false,
-            errorType: "client",
-            httpStatus: resp.status,
-            ok: false,
-        };
-    }
-    catch (e) {
-        return {
-            canRetry: true,
-            errorType: "network",
-            httpStatus: 0,
-            ok: false,
-        };
-    }
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+
+// src/lib/other.ts
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
-//# sourceMappingURL=ci-greenlight.js.map
-
-/***/ }),
-
-/***/ 6347:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.postDeploySuccess = postDeploySuccess;
-async function postDeploySuccess({ apiKey, serviceBase }, deployConfig, { fetch: localFetch }) {
-    try {
-        const response = await localFetch(new URL("/api/webhooks/deploy_success", serviceBase), {
-            body: JSON.stringify({
-                branch: deployConfig.branch,
-                commit_url: deployConfig.commitUrl,
-                deduplication_key: deployConfig.deduplicationKey,
-                deployment_type: deployConfig.deploymentType,
-                deployment_url: deployConfig.deploymentUrl,
-                hosting_service: deployConfig.hostingService,
-                merge_request_number: deployConfig.hostingService === "GitLab"
-                    ? deployConfig.mergeRequestNumber
-                    : undefined,
-                pull_request_number: deployConfig.hostingService === "GitHub"
-                    ? deployConfig.pullRequestNumber
-                    : undefined,
-                repository: deployConfig.repository,
-                sha: deployConfig.sha,
-                variables: deployConfig.variables,
-            }),
-            headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-            },
-            method: "POST",
-        });
-        if (response.ok) {
-            const { results } = (await response.json());
-            const failedTrigger = results.find((t) => !!t.failure_reason);
-            const successfulTrigger = results.find((t) => !!t.created_suite_id);
-            if (successfulTrigger == null && failedTrigger == null) {
-                return {
-                    failureReason: "no-matched-trigger",
-                    success: false,
-                };
-            }
-            if (failedTrigger) {
-                return {
-                    details: failedTrigger.failure_reason,
-                    failureReason: "run-could-not-be-created",
-                    success: false,
-                };
-            }
-            if (!successfulTrigger) {
-                return {
-                    failureReason: "no-matched-trigger",
-                    success: false,
-                };
-            }
-            const runId = successfulTrigger.created_suite_id;
-            return { runId, success: true };
-        }
-        else {
-            if (response.status >= 500) {
-                return {
-                    failureReason: "5XX-server-error",
-                    httpStatus: response.status,
-                    success: false,
-                };
-            }
-            if (response.status === 401) {
-                return {
-                    failureReason: "401-unauthorized",
-                    httpStatus: response.status,
-                    success: false,
-                };
-            }
-            if (response.status === 403) {
-                return {
-                    failureReason: "403-forbidden",
-                    httpStatus: response.status,
-                    success: false,
-                };
-            }
-            return {
-                failureReason: "4XX-client-error",
-                httpStatus: response.status,
-                success: false,
-            };
-        }
-    }
-    catch (e) {
-        return {
-            failureReason: "network-error",
-            success: false,
-        };
-    }
+__name(sleep, "sleep");
+function pluralize(count) {
+  return count === 1 ? "" : "s";
 }
-//# sourceMappingURL=deploy.js.map
-
-/***/ }),
-
-/***/ 8419:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.callGenerateSignedUrlForRunInputsExecutablesStorage = callGenerateSignedUrlForRunInputsExecutablesStorage;
-async function callGenerateSignedUrlForRunInputsExecutablesStorage({ apiKey, serviceBase }, { destinationFilePath }, { fetch: localFetch }) {
-    try {
-        const response = await localFetch(new URL(`${serviceBase}/api/v0/run-inputs-executables-signed-urls?file=${encodeURIComponent(destinationFilePath)}`), {
-            headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-            },
-            method: "GET",
-        });
-        if (response.status === 200) {
-            const json = (await response.json());
-            return {
-                fileLocation: json.fileLocation,
-                httpStatus: response.status,
-                playgroundFileLocation: json.playgroundFileLocation,
-                signedUrl: json.signedUrl,
-                success: true,
-            };
-        }
-        return {
-            errorMessage: await response.text(),
-            httpStatus: response.status,
-            success: false,
-        };
-    }
-    catch (e) {
-        return {
-            errorMessage: "Network error, aborting request to generate signed URL",
-            httpStatus: 0,
-            success: false,
-        };
-    }
+__name(pluralize, "pluralize");
+function getBackoffMs(attemptNumber, minWaitMs = 1e3, maxWaitMs = 1e4) {
+  return Math.min(maxWaitMs, minWaitMs * 1.2 ** attemptNumber);
 }
-//# sourceMappingURL=generate-signed-url-for-run-inputs-executables.js.map
+__name(getBackoffMs, "getBackoffMs");
+var buildFetchWithTimeout = /* @__PURE__ */ __name((fetch, timeout) => async (...args) => fetch(args[0], {
+  ...args[1],
+  signal: AbortSignal.timeout(timeout)
+}), "buildFetchWithTimeout");
 
-/***/ }),
+// src/lib/sdk/defaults/fetch.ts
+var defaultFetch = globalThis.fetch;
 
-/***/ 8048:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.callGenerateSignedUrlForTempTeamStorage = callGenerateSignedUrlForTempTeamStorage;
-async function callGenerateSignedUrlForTempTeamStorage({ apiKey, serviceBase }, { destinationFilePath }, { fetch: localFetch }) {
-    try {
-        const response = await localFetch(new URL(`${serviceBase}/api/v0/team-storage-signed-url?file=${destinationFilePath}`), {
-            headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-            },
-            method: "GET",
-        });
-        if (response.status === 200) {
-            const json = (await response.json());
-            return {
-                fileLocation: json.fileLocation,
-                httpStatus: response.status,
-                playgroundFileLocation: json.playgroundFileLocation,
-                signedUrl: json.signedUrl,
-                success: true,
-            };
-        }
-        return {
-            errorMessage: await response.text(),
-            httpStatus: response.status,
-            success: false,
-        };
-    }
-    catch (e) {
-        return {
-            errorMessage: "Network error, aborting request to generate signed URL",
-            httpStatus: 0,
-            success: false,
-        };
-    }
-}
-//# sourceMappingURL=generate-signed-url-for-team-storage.js.map
-
-/***/ }),
-
-/***/ 406:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.qawolfGraphql = qawolfGraphql;
-class GraphQLBadResponseError extends Error {
-    constructor(message) {
-        super(message);
-        this.name = "GraphQLBadResponseError";
-    }
-}
-async function qawolfGraphql({ apiConfig: { apiKey, serviceBase }, deps: { fetch: localFetch, log }, name, query: queryGql, variables, }) {
-    try {
-        const response = await localFetch(new URL(`/api/graphql`, serviceBase), {
-            body: JSON.stringify({
-                query: queryGql,
-                variables,
-            }),
-            headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-            },
-            method: "post",
-        });
-        let rawBody;
-        try {
-            rawBody = (await response.json());
-        }
-        catch (e) {
-            throw new GraphQLBadResponseError(`[GraphQL] Unexpected response schema. Not valid JSON body.`);
-        }
-        if ("errors" in rawBody) {
-            const extensionsCodes = rawBody.errors.flatMap((error) => error.extensions?.map?.((ext) => ext.code) ?? []);
-            for (const error of rawBody.errors)
-                log.warn(`❌ [GraphQL] error: ${error.message}`);
-            const isUnauthenticated = extensionsCodes.includes("UNAUTHENTICATED");
-            const isForbidden = extensionsCodes.includes("FORBIDDEN");
-            const isInternal = extensionsCodes.includes("INTERNAL");
-            const isBadUserInput = extensionsCodes.includes("BAD_USER_INPUT");
-            return {
-                errorCode: isUnauthenticated
-                    ? "unauthenticated"
-                    : isForbidden
-                        ? "forbidden"
-                        : isInternal
-                            ? "internal"
-                            : isBadUserInput
-                                ? "bad-input"
-                                : "unknown",
-                isGqlError: true,
-            };
-        }
-        if (!("data" in rawBody)) {
-            throw new GraphQLBadResponseError(`[GraphQL] Unexpected response schema. Missing 'data' in response body. This is a bug.`);
-        }
-        if (!(name in rawBody.data)) {
-            throw new GraphQLBadResponseError(`[GraphQL] Unexpected response schema. Missing 'data.${name}' in response body. This is a bug.`);
-        }
-        return {
-            isGqlError: false,
-            responseBody: rawBody.data[name],
-        };
-    }
-    catch (e) {
-        if (e instanceof GraphQLBadResponseError)
-            throw e;
-        log.error(`❌ [GraphQL] network error: ${e instanceof Error ? e.message : e}`);
-        return { errorCode: "network-error", isGqlError: true };
-    }
-}
-//# sourceMappingURL=graphql.js.map
-
-/***/ }),
-
-/***/ 1857:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.callNotifyVCSBranchBuildDeployedMutation = callNotifyVCSBranchBuildDeployedMutation;
-const graphql_1 = __nccwpck_require__(406);
-const mutationName = "notifyVCSBranchBuildDeployed";
-const mutationGql = `
-mutation NotifyVCSBranchBuildDeployed(
-  $headVcsCommitId: String!,
-  $baseVcsBranch: String,
-  $headEnvironmentVariablesJson: String!,
-  $baseEnvironmentAlias: String,
-  $headEnvironmentAlias: String!,
-  $concurrencyLimit: Int,
-  $headEnvironmentName: String,
-  $headVcsBranch: String,
-  $headVcsCommitUrl: String,
-  $pullOrMergeRequestNumber: Int
-) {
-    ${mutationName}(
-      headVcsCommitId: $headVcsCommitId,
-      baseVcsBranch: $baseVcsBranch,
-      headEnvironmentVariablesJson: $headEnvironmentVariablesJson,
-      baseEnvironmentAlias: $baseEnvironmentAlias,
-      headEnvironmentAlias: $headEnvironmentAlias,
-      concurrencyLimit: $concurrencyLimit,
-      headEnvironmentName: $headEnvironmentName,
-      headVcsBranch: $headVcsBranch,
-      headVcsCommitUrl: $headVcsCommitUrl,
-      pullOrMergeRequestNumber: $pullOrMergeRequestNumber
-    ) {
-    outcome
-    codeHostingServiceInstallationPlatform
-    failureCode
-    failureDetails
-    runId
+// src/lib/sdk/defaults/log.ts
+var defaultLogDriver = {
+  error(message, error) {
+    console.error(message, error);
+  },
+  info(message) {
+    console.log(message);
+  },
+  warn(message) {
+    console.warn(message);
   }
-}`;
-async function callNotifyVCSBranchBuildDeployedMutation(deps, apiConfig, { baseEnvironmentAlias, baseVcsBranch, concurrencyLimit, headEnvironmentAlias, headEnvironmentName, headEnvironmentVariables, headVcsBranch, headVcsCommitId, headVcsCommitUrl, pullOrMergeRequestNumber, }) {
-    return (0, graphql_1.qawolfGraphql)({
-        apiConfig,
-        deps,
-        name: mutationName,
-        query: mutationGql,
-        variables: {
-            baseEnvironmentAlias: baseEnvironmentAlias ?? null,
-            baseVcsBranch: baseVcsBranch ?? null,
-            concurrencyLimit: concurrencyLimit ?? null,
-            headEnvironmentAlias,
-            headEnvironmentName,
-            headEnvironmentVariablesJson: JSON.stringify(headEnvironmentVariables),
-            headVcsBranch: headVcsBranch ?? null,
-            headVcsCommitId,
-            headVcsCommitUrl: headVcsCommitUrl ?? null,
-            pullOrMergeRequestNumber: pullOrMergeRequestNumber ?? null,
-        },
-        // The type coercion highlights that we don't have runtime schema validation
-    });
-}
-//# sourceMappingURL=notify-vcs-branch-build-deployed-mutation.js.map
-
-/***/ }),
-
-/***/ 8625:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.callNotifyVCSBranchMergeCanceledMutation = callNotifyVCSBranchMergeCanceledMutation;
-const graphql_1 = __nccwpck_require__(406);
-const mutationName = "notifyVCSBranchMergeCanceled";
-const mutationGql = `
-mutation NotifyVCSBranchMergeCanceled($headEnvironmentAlias: String!) {
-  ${mutationName}(headEnvironmentAlias: $headEnvironmentAlias) {
-    outcome
-    failureCode
-    failureDetails
-  }
-}`;
-async function callNotifyVCSBranchMergeCanceledMutation(deps, apiConfig, { headEnvironmentAlias }) {
-    return (0, graphql_1.qawolfGraphql)({
-        apiConfig,
-        deps,
-        name: mutationName,
-        query: mutationGql,
-        variables: {
-            headEnvironmentAlias,
-        },
-        // The type coercion highlights that we don't have runtime schema validation
-    });
-}
-//# sourceMappingURL=notify-vcs-branch-merge-canceled-mutation.js.map
-
-/***/ }),
-
-/***/ 7328:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.callNotifyVCSBranchMergeCompletedMutation = callNotifyVCSBranchMergeCompletedMutation;
-const graphql_1 = __nccwpck_require__(406);
-const mutationName = "notifyVCSBranchMergeCompleted";
-const mutationGql = `
-mutation NotifyVCSBranchMergeCompleted($baseEnvironmentAlias: String, $headEnvironmentAlias: String!) {
-${mutationName}(baseEnvironmentAlias: $baseEnvironmentAlias, headEnvironmentAlias: $headEnvironmentAlias) {
-    outcome
-    failureCode
-    failureDetails
-  }
-}`;
-async function callNotifyVCSBranchMergeCompletedMutation(deps, apiConfig, { baseEnvironmentAlias, headEnvironmentAlias, }) {
-    return (0, graphql_1.qawolfGraphql)({
-        apiConfig,
-        deps,
-        name: mutationName,
-        query: mutationGql,
-        variables: {
-            baseEnvironmentAlias: baseEnvironmentAlias ?? null,
-            headEnvironmentAlias,
-        },
-        // The type coercion highlights that we don't have runtime schema validation
-    });
-}
-//# sourceMappingURL=notify-vcs-branch-merge-completed-mutation.js.map
-
-/***/ }),
-
-/***/ 3704:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.defaultFetch = void 0;
-exports.defaultFetch = globalThis.fetch;
-//# sourceMappingURL=fetch.js.map
-
-/***/ }),
-
-/***/ 4734:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.defaultLogDriver = void 0;
-exports.defaultLogDriver = {
-    error(message, error) {
-        console.error(message, error);
-    },
-    info(message) {
-        console.log(message);
-    },
-    warn(message) {
-        console.warn(message);
-    },
 };
-//# sourceMappingURL=log.js.map
 
-/***/ }),
+// src/lib/sdk/defaults/serviceBase.ts
+var defaultServiceBase = "https://app.qawolf.com/";
 
-/***/ 1919:
-/***/ ((__unused_webpack_module, exports) => {
+// package.json
+var version = "0.23.1";
 
-"use strict";
+// src/lib/sdk/defaults/userAgent.ts
+var defaultUserAgent = `ci-sdk/${version}`;
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.defaultServiceBase = void 0;
-exports.defaultServiceBase = "https://app.qawolf.com/";
-//# sourceMappingURL=serviceBase.js.map
+// src/lib/api/log.ts
+async function logFetchError({ log, methodName, response }) {
+  if (response.ok) return;
+  const { eventId, failureMessage } = await (async () => {
+    try {
+      const body = await response.json().catch(() => response.text());
+      if (typeof body === "object" && body !== null) {
+        return {
+          eventId: body.eventId,
+          failureMessage: body.failureMessage
+        };
+      }
+      return {
+        eventId: void 0,
+        failureMessage: body
+      };
+    } catch {
+      return {
+        eventId: undefined,
+        failureMessage: undefined
+      };
+    }
+  })();
+  const eventIdSuffix = eventId ? ` (Event ID: ${eventId})` : "";
+  const messageSuffix = failureMessage ? `: ${failureMessage}` : "";
+  const statusText = response.status >= 500 ? "Server Error" : response.statusText || "Unknown Error";
+  log.error(`\u274C [${methodName}] ${response.status} ${statusText}${eventIdSuffix}${messageSuffix}`);
+}
+__name(logFetchError, "logFetchError");
 
-/***/ }),
-
-/***/ 9253:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=dependencies.js.map
-
-/***/ }),
-
-/***/ 289:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.attemptNotifyDeploy = attemptNotifyDeploy;
-const deploy_1 = __nccwpck_require__(6347);
-const utils_1 = __nccwpck_require__(4793);
+// src/lib/sdk/domain/attemptDeploy/index.ts
 async function attemptNotifyDeploy(deps, apiConfig, config) {
-    const { log } = deps;
-    const responseState = await (0, deploy_1.postDeploySuccess)(apiConfig, config, deps);
-    if (!responseState.success) {
-        if (responseState.failureReason === "no-matched-trigger") {
-            log.error(`🚫 No trigger matched the request. Please contact support.`);
-            return { failReason: "no-matched-trigger", outcome: "failed" };
-        }
-        else if (responseState.failureReason === "run-could-not-be-created") {
-            log.error(`🚫 Run could not be created. Reason: "${responseState.details}". Please contact support.`);
-            return { failReason: "run-could-not-be-created", outcome: "failed" };
-        }
-        if (responseState.failureReason === "network-error")
-            log.error(`🚫 Network error from deploy_success, aborting.`);
-        else if (responseState.failureReason === "5XX-server-error") {
-            log.error(`🚫 Server error from deploy_success (status ${responseState.httpStatus}), aborting. Please contact support.`);
-        }
-        else if (responseState.failureReason === "4XX-client-error") {
-            log.error(`🚫 Unrecoverable error from deploy_success (status ${responseState.httpStatus}), aborting. Please contact support.`);
-        }
-        else if (responseState.failureReason === "403-forbidden") {
-            log.error(`🚫 Forbidden error from deploy_success (status ${responseState.httpStatus}), aborting. Please contact support.`);
-        }
-        else if (responseState.failureReason === "401-unauthorized") {
-            log.error(`🚫 Unauthorized error from deploy_success (status ${responseState.httpStatus}), aborting. Please contact support.`);
-        }
-        else
-            (0, utils_1.assertType)(responseState);
-        if (responseState.failureReason === "network-error") {
-            return {
-                abortReason: "network-error",
-                httpStatus: undefined,
-                outcome: "aborted",
-            };
-        }
-        return {
-            abortReason: responseState.failureReason,
-            httpStatus: responseState.httpStatus,
-            outcome: "aborted",
-        };
-    }
-    log.info(`✅ Run created with ID: ${responseState.runId}`);
+  const { fetch: localFetch, log } = deps;
+  try {
+    const response = await localFetch(new URL("/api/webhooks/deploy_success", apiConfig.serviceBase), {
+      body: JSON.stringify({
+        branch: config.branch,
+        commit_url: config.commitUrl,
+        deduplication_key: config.deduplicationKey,
+        deployment_type: config.deploymentType,
+        deployment_url: config.deploymentUrl,
+        hosting_service: config.hostingService,
+        merge_request_number: config.hostingService === "GitLab" ? config.mergeRequestNumber : void 0,
+        pull_request_number: config.hostingService === "GitHub" ? config.pullRequestNumber : void 0,
+        repository: config.repository,
+        sha: config.sha,
+        variables: config.variables
+      }),
+      headers: {
+        Authorization: `Bearer ${apiConfig.apiKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": apiConfig.userAgent
+      },
+      method: "POST"
+    });
+    if (!response.ok) return handleErrorResponse(response, log);
+    const data = await response.json();
+    return handleSuccessResponse(data, log);
+  } catch (error) {
+    log.error(`\u{1F6AB} Network error from deploy_success, aborting.`);
     return {
+      abortReason: "network-error",
+      httpStatus: undefined,
+      outcome: "aborted"
+    };
+  }
+}
+__name(attemptNotifyDeploy, "attemptNotifyDeploy");
+async function handleErrorResponse(response, log) {
+  const status = response.status;
+  let abortReason;
+  if (status === undefined) abortReason = "network-error";
+  else if (status === 401) abortReason = "401-unauthorized";
+  else if (status === 403) abortReason = "403-forbidden";
+  else if (status >= 500) abortReason = "5XX-server-error";
+  else abortReason = "4XX-client-error";
+  await logFetchError({
+    log,
+    methodName: "attemptNotifyDeploy",
+    response
+  });
+  return {
+    abortReason,
+    httpStatus: status,
+    outcome: "aborted"
+  };
+}
+__name(handleErrorResponse, "handleErrorResponse");
+async function handleSuccessResponse(data, log) {
+  const { environment, results } = data;
+  const isPreviewDeployment = environment && !environment.isStatic;
+  if (environment) {
+    const logPrefix = environment.isStatic ? "Static environment" : "Preview environment";
+    log.info(`${logPrefix}: ${environment.alias} (id: ${environment.id})`);
+  }
+  if (results.length === 0) {
+    if (isPreviewDeployment) {
+      log.info(`\u2705 Deployment notification was successful. No run was created for this deployment.`);
+      return {
+        environmentId: environment.id,
         outcome: "success",
-        runId: responseState.runId,
+        runId: undefined
+      };
+    }
+    log.error(`\u{1F6AB} No trigger matched the request. Please contact support.`);
+    return {
+      failReason: "no-matched-trigger",
+      outcome: "failed"
     };
+  }
+  if (!environment) {
+    log.error(`\u{1F6AB} No environment matched the request. Please contact support.`);
+    return {
+      failReason: "no-environment",
+      outcome: "failed"
+    };
+  }
+  const failedTrigger = results.find((t) => "failure_reason" in t);
+  if (failedTrigger) {
+    log.error(`\u{1F6AB} Run could not be created. Reason: "${failedTrigger.failure_reason}". Please contact support.`);
+    return {
+      failReason: "run-could-not-be-created",
+      outcome: "failed"
+    };
+  }
+  const duplicateSuite = results.find((t) => "duplicate_suite_id" in t);
+  if (duplicateSuite) {
+    log.info(`\u2705 Deployment notification was successful. Previous run ID: ${duplicateSuite.duplicate_suite_id} already exists for this deployment.`);
+    return {
+      environmentId: environment.id,
+      outcome: "success",
+      runId: duplicateSuite.duplicate_suite_id
+    };
+  }
+  const successfulTrigger = results.find((t) => "created_suite_id" in t);
+  if (!successfulTrigger) {
+    log.error(`\u{1F6AB} No trigger matched the request. Please contact support.`);
+    return {
+      failReason: "no-matched-trigger",
+      outcome: "failed"
+    };
+  }
+  log.info(`\u2705 Deployment notification was successful. Run created with ID: ${successfulTrigger.created_suite_id}`);
+  return {
+    environmentId: environment.id,
+    outcome: "success",
+    runId: successfulTrigger.created_suite_id
+  };
 }
-//# sourceMappingURL=attempt-deploy.js.map
+__name(handleSuccessResponse, "handleSuccessResponse");
 
-/***/ }),
+// src/lib/api/generate-signed-url-for-run-inputs-executables.ts
+async function callGenerateSignedUrlForRunInputsExecutablesStorage({ apiKey, serviceBase, userAgent }, { destinationFilePath }, { fetch: localFetch, log }) {
+  try {
+    const response = await localFetch(new URL(`${serviceBase}/api/v0/run-inputs-executables-signed-urls?file=${encodeURIComponent(destinationFilePath)}`), {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": userAgent
+      },
+      method: "GET"
+    });
+    if (response.status === 200) {
+      const json = await response.json();
+      return {
+        fileLocation: json.fileLocation,
+        httpStatus: response.status,
+        playgroundFileLocation: json.playgroundFileLocation,
+        signedUrl: json.signedUrl,
+        success: true
+      };
+    }
+    await logFetchError({
+      log,
+      methodName: "callGenerateSignedUrlForRunInputsExecutablesStorage",
+      response
+    });
+    return {
+      errorMessage: await response.text(),
+      httpStatus: response.status,
+      success: false
+    };
+  } catch (e) {
+    return {
+      errorMessage: "Network error, aborting request to generate signed URL",
+      httpStatus: 0,
+      success: false
+    };
+  }
+}
+__name(callGenerateSignedUrlForRunInputsExecutablesStorage, "callGenerateSignedUrlForRunInputsExecutablesStorage");
 
-/***/ 7549:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateSignedUrlForRunInputsExecutablesStorage = generateSignedUrlForRunInputsExecutablesStorage;
-const generate_signed_url_for_run_inputs_executables_1 = __nccwpck_require__(8419);
+// src/lib/sdk/domain/generateSignedUrls/generate-signed-url-for-run-inputs-executables.ts
 async function generateSignedUrlForRunInputsExecutablesStorage(deps, apiConfig, config) {
-    const { log } = deps;
-    if (!config.destinationFilePath) {
-        log.error(`🚫 destinationFilePath is a required config parameter`);
-        return {
-            abortReason: "sdk-argument-validation-failed",
-            success: false,
-        };
-    }
-    const responseState = await (0, generate_signed_url_for_run_inputs_executables_1.callGenerateSignedUrlForRunInputsExecutablesStorage)(apiConfig, config, deps);
-    if (!responseState.success) {
-        let abortReason = "XXX-other-http-code";
-        if (responseState.httpStatus >= 500) {
-            abortReason = "5XX-server-error";
-            log.error(`🚫 Unrecoverable error (status ${responseState.httpStatus}) when generating signed upload url: aborting.`);
-        }
-        else {
-            if (responseState.httpStatus === 400)
-                abortReason = "400-invalid-request";
-            else if (responseState.httpStatus === 401)
-                abortReason = "401-invalid-credentials";
-            else if (responseState.httpStatus === 403)
-                abortReason = "403-forbidden";
-            else if (responseState.httpStatus === 0)
-                abortReason = "client-network-error";
-            log.error(`🚫 Unrecoverable error (status ${responseState.httpStatus}) when generating signed upload url: ${responseState.errorMessage ? `${responseState.errorMessage}.` : ""} aborting.`);
-        }
-        return {
-            abortReason,
-            httpStatus: responseState.httpStatus,
-            success: false,
-        };
-    }
-    log.info(`✅ Generated Signed Upload URL: ${responseState.signedUrl}.`);
+  const { log } = deps;
+  if (!config.destinationFilePath) {
+    log.error(`\u{1F6AB} destinationFilePath is a required config parameter`);
     return {
-        fileLocation: responseState.fileLocation,
-        playgroundFileLocation: responseState.playgroundFileLocation,
-        success: true,
-        uploadUrl: responseState.signedUrl,
+      abortReason: "sdk-argument-validation-failed",
+      success: false
     };
+  }
+  const responseState = await callGenerateSignedUrlForRunInputsExecutablesStorage(apiConfig, config, deps);
+  if (!responseState.success) {
+    let abortReason = "XXX-other-http-code";
+    if (responseState.httpStatus >= 500) {
+      abortReason = "5XX-server-error";
+      log.error(`\u{1F6AB} Unrecoverable error (status ${responseState.httpStatus}) when generating signed upload url: aborting.`);
+    } else {
+      if (responseState.httpStatus === 400) abortReason = "400-invalid-request";
+      else if (responseState.httpStatus === 401) abortReason = "401-invalid-credentials";
+      else if (responseState.httpStatus === 403) abortReason = "403-forbidden";
+      else if (responseState.httpStatus === 0) abortReason = "client-network-error";
+      log.error(`\u{1F6AB} Unrecoverable error (status ${responseState.httpStatus}) when generating signed upload url: ${responseState.errorMessage ? `${responseState.errorMessage}.` : ""} aborting.`);
+    }
+    return {
+      abortReason,
+      httpStatus: responseState.httpStatus,
+      success: false
+    };
+  }
+  log.info(`\u2705 Generated Signed Upload URL: ${responseState.signedUrl}.`);
+  return {
+    fileLocation: responseState.fileLocation,
+    playgroundFileLocation: responseState.playgroundFileLocation,
+    success: true,
+    uploadUrl: responseState.signedUrl
+  };
 }
-//# sourceMappingURL=generate-signed-url-for-run-inputs-executables.js.map
+__name(generateSignedUrlForRunInputsExecutablesStorage, "generateSignedUrlForRunInputsExecutablesStorage");
 
-/***/ }),
+// src/lib/api/generate-signed-url-for-team-storage.ts
+async function callGenerateSignedUrlForTempTeamStorage({ apiKey, serviceBase, userAgent }, { destinationFilePath }, { fetch: localFetch, log }) {
+  try {
+    const response = await localFetch(new URL(`${serviceBase}/api/v0/team-storage-signed-url?file=${destinationFilePath}`), {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": userAgent
+      },
+      method: "GET"
+    });
+    if (response.status === 200) {
+      const json = await response.json();
+      return {
+        fileLocation: json.fileLocation,
+        httpStatus: response.status,
+        playgroundFileLocation: json.playgroundFileLocation,
+        signedUrl: json.signedUrl,
+        success: true
+      };
+    }
+    await logFetchError({
+      log,
+      methodName: "callGenerateSignedUrlForTempTeamStorage",
+      response
+    });
+    return {
+      errorMessage: await response.text(),
+      httpStatus: response.status,
+      success: false
+    };
+  } catch (e) {
+    return {
+      errorMessage: "Network error, aborting request to generate signed URL",
+      httpStatus: 0,
+      success: false
+    };
+  }
+}
+__name(callGenerateSignedUrlForTempTeamStorage, "callGenerateSignedUrlForTempTeamStorage");
 
-/***/ 2160:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateSignedUrlForTempTeamStorage = generateSignedUrlForTempTeamStorage;
-const generate_signed_url_for_team_storage_1 = __nccwpck_require__(8048);
+// src/lib/sdk/domain/generateSignedUrls/generate-signed-url-for-team-storage.ts
 async function generateSignedUrlForTempTeamStorage(deps, apiConfig, config) {
-    const { log } = deps;
-    if (!config.destinationFilePath) {
-        log.error(`🚫 destinationFilePath is a required config parameter`);
-        return {
-            abortReason: "sdk-argument-validation-failed",
-            success: false,
-        };
-    }
-    const responseState = await (0, generate_signed_url_for_team_storage_1.callGenerateSignedUrlForTempTeamStorage)(apiConfig, config, deps);
-    if (!responseState.success) {
-        let abortReason = "XXX-other-http-code";
-        if (responseState.httpStatus >= 500) {
-            abortReason = "5XX-server-error";
-            log.error(`🚫 Unrecoverable error (status ${responseState.httpStatus}) when generating signed upload url: aborting.`);
-        }
-        else {
-            if (responseState.httpStatus === 400)
-                abortReason = "400-invalid-request";
-            else if (responseState.httpStatus === 401)
-                abortReason = "401-invalid-credentials";
-            else if (responseState.httpStatus === 403)
-                abortReason = "403-forbidden";
-            else if (responseState.httpStatus === 0)
-                abortReason = "client-network-error";
-            log.error(`🚫 Unrecoverable error (status ${responseState.httpStatus}) when generating signed upload url: ${responseState.errorMessage ? `${responseState.errorMessage}.` : ""} aborting.`);
-        }
-        return {
-            abortReason,
-            httpStatus: responseState.httpStatus,
-            success: false,
-        };
-    }
-    log.info(`✅ Generated Signed Upload URL: ${responseState.signedUrl}.`);
+  const { log } = deps;
+  if (!config.destinationFilePath) {
+    log.error(`\u{1F6AB} destinationFilePath is a required config parameter`);
     return {
-        fileLocation: responseState.fileLocation,
-        playgroundFileLocation: responseState.playgroundFileLocation,
-        success: true,
-        uploadUrl: responseState.signedUrl,
+      abortReason: "sdk-argument-validation-failed",
+      success: false
     };
-}
-//# sourceMappingURL=generate-signed-url-for-team-storage.js.map
-
-/***/ }),
-
-/***/ 9894:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.previewDeploymentType = exports.qawolfDeploySuccessEndpoint = exports.qawolfGraphQLEndpoint = exports.qawolfBaseUrl = void 0;
-exports.qawolfBaseUrl = "https://app.qawolf.com";
-exports.qawolfGraphQLEndpoint = `${exports.qawolfBaseUrl}/api/graphql`;
-exports.qawolfDeploySuccessEndpoint = `${exports.qawolfBaseUrl}/api/webhooks/deploy_success`;
-exports.previewDeploymentType = "qawolf-preview";
-//# sourceMappingURL=constants.js.map
-
-/***/ }),
-
-/***/ 4515:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createEnvironmentAction = void 0;
-const createEnvironmentVariables_1 = __nccwpck_require__(8294);
-const findOrCreateEnvironment_1 = __nccwpck_require__(6460);
-const findOrCreateTrigger_1 = __nccwpck_require__(5562);
-const findRepositoryIdByName_1 = __nccwpck_require__(1202);
-const getEnvironmentVariablesFromEnvironment_1 = __nccwpck_require__(1035);
-const getTagsFromEnvironment_1 = __nccwpck_require__(931);
-const createEnvironmentAction = async (deps, apiConfig, { baseEnvironmentId, branch, deploymentUrl, headRepoFullName, pr, qaWolfTeamId, variables, }) => {
-    deps.log.info("Creating environment for pull request...");
-    const environmentId = await (0, findOrCreateEnvironment_1.findOrCreateEnvironment)(deps, apiConfig, {
-        baseEnvironmentId,
-        branch,
-        pr,
-        qaWolfTeamId,
-    });
-    deps.log.info(`Environment created with ID: ${environmentId}`);
-    const baseEnvironmentVariablesJSON = baseEnvironmentId
-        ? await (0, getEnvironmentVariablesFromEnvironment_1.getEnvironmentVariablesFromEnvironment)(deps, apiConfig, {
-            environmentId: baseEnvironmentId,
-        })
-        : {};
-    if (typeof baseEnvironmentVariablesJSON !== "object") {
-        deps.log.error("baseEnvironmentVariablesJSON is not an object");
-        throw Error("baseEnvironmentVariablesJSON is not an object");
+  }
+  const responseState = await callGenerateSignedUrlForTempTeamStorage(apiConfig, config, deps);
+  if (!responseState.success) {
+    let abortReason = "XXX-other-http-code";
+    if (responseState.httpStatus >= 500) {
+      abortReason = "5XX-server-error";
+      log.error(`\u{1F6AB} Unrecoverable error (status ${responseState.httpStatus}) when generating signed upload url: aborting.`);
+    } else {
+      if (responseState.httpStatus === 400) abortReason = "400-invalid-request";
+      else if (responseState.httpStatus === 401) abortReason = "401-invalid-credentials";
+      else if (responseState.httpStatus === 403) abortReason = "403-forbidden";
+      else if (responseState.httpStatus === 0) abortReason = "client-network-error";
+      log.error(`\u{1F6AB} Unrecoverable error (status ${responseState.httpStatus}) when generating signed upload url: ${responseState.errorMessage ? `${responseState.errorMessage}.` : ""} aborting.`);
     }
-    const combinedEnvironmentVariables = {
-        ...baseEnvironmentVariablesJSON,
-        ...variables,
-        ...(deploymentUrl ? { URL: deploymentUrl } : {}),
+    return {
+      abortReason,
+      httpStatus: responseState.httpStatus,
+      success: false
     };
-    deps.log.info("Creating environment variables...");
-    await (0, createEnvironmentVariables_1.createEnvironmentVariables)(deps, apiConfig, {
-        environmentId,
-        variables: combinedEnvironmentVariables,
-    });
-    deps.log.info(`Environment variables created for environment ID: ${environmentId}`);
-    deps.log.info("Retrieving repository ID...");
-    const repositoryId = await (0, findRepositoryIdByName_1.findRepositoryIdByName)(deps, apiConfig, {
-        headRepoFullName,
-    });
-    deps.log.info(repositoryId
-        ? `Repository ID retrieved: ${repositoryId}`
-        : "Repository not integrated with QA Wolf, enable it in the settings page to get PR comments and checks.");
-    const tags = baseEnvironmentId
-        ? await (0, getTagsFromEnvironment_1.getTagsFromGenericTriggerInEnvironment)(deps, apiConfig, {
-            environmentId: baseEnvironmentId,
-        })
-        : undefined;
-    deps.log.info(`Tags retrieved: ${tags?.map((tag) => tag.name).join(", ")}`);
-    deps.log.info("Creating trigger for deployment...");
-    await (0, findOrCreateTrigger_1.findOrCreateTrigger)(deps, apiConfig, {
-        branch,
-        environmentId,
-        pr,
-        qaWolfTeamId,
-        repositoryId,
-        tags,
-    });
-};
-exports.createEnvironmentAction = createEnvironmentAction;
-//# sourceMappingURL=createEnvironmentAction.js.map
+  }
+  log.info(`\u2705 Generated Signed Upload URL: ${responseState.signedUrl}.`);
+  return {
+    fileLocation: responseState.fileLocation,
+    playgroundFileLocation: responseState.playgroundFileLocation,
+    success: true,
+    uploadUrl: responseState.signedUrl
+  };
+}
+__name(generateSignedUrlForTempTeamStorage, "generateSignedUrlForTempTeamStorage");
 
-/***/ }),
+// src/lib/sdk/domain/legacy_previewTesting/constants.ts
+var qawolfBaseUrl = "https://app.qawolf.com";
+var qawolfGraphQLEndpoint = `${qawolfBaseUrl}/api/graphql`;
+var previewDeploymentType = "qawolf-preview";
 
-/***/ 8294:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.createEnvironmentVariables = createEnvironmentVariables;
-const constants_1 = __nccwpck_require__(9894);
-async function createEnvironmentVariables(deps, apiConfig, { environmentId, variables, }) {
-    const environmentVariableRequests = Object.keys(variables).map(async (key) => {
-        const value = variables[key];
-        return deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-            body: JSON.stringify({
-                query: `
+// src/lib/sdk/domain/legacy_previewTesting/createEnvironmentVariables.ts
+async function createEnvironmentVariables(deps, apiConfig, { environmentId, variables }) {
+  const environmentVariableRequests = Object.keys(variables).map(async (key) => {
+    const value = variables[key];
+    return deps.fetch(qawolfGraphQLEndpoint, {
+      body: JSON.stringify({
+        query: `
             mutation UpsertEnvironmentVariable($environmentId: ID!, $value: String!, $name: String) {
               upsertEnvironmentVariable(environmentId: $environmentId, value: $value, name: $name) {
                 id
               }
             }
           `,
-                variables: {
-                    environmentId,
-                    name: key,
-                    value,
-                },
-            }),
-            headers: {
-                Authorization: `Bearer ${apiConfig.apiKey}`,
-                "Content-Type": "application/json",
-            },
-            method: "post",
-        });
-    });
-    await Promise.all(environmentVariableRequests);
-}
-//# sourceMappingURL=createEnvironmentVariables.js.map
-
-/***/ }),
-
-/***/ 6942:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.deleteEnvironment = deleteEnvironment;
-const constants_1 = __nccwpck_require__(9894);
-async function deleteEnvironment(deps, apiConfig, { environmentId, }) {
-    await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            query: `
-        mutation deleteEnvironment($environmentId: ID!) {
-          deleteEnvironment(environment_id: $environmentId) {
-            id
-          }
+        variables: {
+          environmentId,
+          name: key,
+          value
         }
-      `,
-            variables: {
-                environmentId,
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
+      }),
+      headers: {
+        Authorization: `Bearer ${apiConfig.apiKey}`,
+        "Content-Type": "application/json"
+      },
+      method: "post"
     });
-    deps.log.info(`Environment deleted with ID: ${environmentId}`);
+  });
+  await Promise.all(environmentVariableRequests);
 }
-//# sourceMappingURL=deleteEnvironment.js.map
+__name(createEnvironmentVariables, "createEnvironmentVariables");
 
-/***/ }),
-
-/***/ 340:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.deleteEnvironmentAction = void 0;
-const deleteEnvironment_1 = __nccwpck_require__(6942);
-const getEnvironmentIdForBranch_1 = __nccwpck_require__(8203);
-const deleteEnvironmentAction = async (deps, apiConfig, { branch, }) => {
-    deps.log.info("Retrieving environment ID for deletion...");
-    const environmentId = await (0, getEnvironmentIdForBranch_1.getEnvironmentIdForBranch)(deps, apiConfig, branch);
-    deps.log.info(`Deleting environment with ID: ${environmentId}`);
-    await (0, deleteEnvironment_1.deleteEnvironment)(deps, apiConfig, { environmentId });
-};
-exports.deleteEnvironmentAction = deleteEnvironmentAction;
-//# sourceMappingURL=deleteEnvironmentAction.js.map
-
-/***/ }),
-
-/***/ 6460:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.findOrCreateEnvironment = findOrCreateEnvironment;
-const constants_1 = __nccwpck_require__(9894);
-// eslint-disable-next-line @qawolf/restrict-names -- Migration debt, clean up when convenient
-async function findOrCreateEnvironment(deps, apiConfig, { baseEnvironmentId, branch, pr, qaWolfTeamId, }) {
-    const retrievalResponse = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            query: `
+// src/lib/sdk/domain/legacy_previewTesting/findOrCreateEnvironment.ts
+async function findOrCreateEnvironment(deps, apiConfig, { baseEnvironmentId, branch, pr, qaWolfTeamId }) {
+  const retrievalResponse = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      query: `
       query Environments($where: EnvironmentWhereInput) {
         environments(where: $where) {
           id
         }
       }
       `,
-            variables: {
-                where: {
-                    deletedAt: {
-                        equals: null,
-                    },
-                    name: {
-                        equals: pr
-                            ? `[PR] #${pr.number} - ${pr.title}`
-                            : `[Preview] ${branch}`,
-                    },
-                },
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const jsonResponse = (await retrievalResponse.json());
-    if (jsonResponse.data.environments[0]) {
-        const environmentId = jsonResponse.data.environments[0].id;
-        deps.log.info(`Environment already exists with ID: ${environmentId}`);
-        return environmentId;
-    }
-    const creationResponse = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            operationName: "createEnvironment",
-            query: `
+      variables: {
+        where: {
+          deletedAt: {
+            equals: null
+          },
+          name: {
+            equals: pr ? `[PR] #${pr.number} - ${pr.title}` : `[Preview] ${branch}`
+          }
+        }
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const jsonResponse = await retrievalResponse.json();
+  if (jsonResponse.data.environments[0]) {
+    const environmentId = jsonResponse.data.environments[0].id;
+    deps.log.info(`Environment already exists with ID: ${environmentId}`);
+    return environmentId;
+  }
+  const creationResponse = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      operationName: "createEnvironment",
+      query: `
         mutation createEnvironment($name: String!, $teamId: String!) {
           createEnvironment(name: $name, teamId: $teamId) {
             id
@@ -37041,24 +36569,23 @@ async function findOrCreateEnvironment(deps, apiConfig, { baseEnvironmentId, bra
           }
         }
       `,
-            variables: {
-                name: pr ? `[PR] #${pr.number} - ${pr.title}` : `[Preview] ${branch}`,
-                teamId: qaWolfTeamId,
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const createionResponseJson = (await creationResponse.json());
-    deps.log.info(`Environment response: ${JSON.stringify(createionResponseJson)}`);
-    if (!createionResponseJson.data.createEnvironment.id)
-        throw Error("Environment ID not found in response");
-    const multiBranchResponse = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            query: `
+      variables: {
+        name: pr ? `[PR] #${pr.number} - ${pr.title}` : `[Preview] ${branch}`,
+        teamId: qaWolfTeamId
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const createionResponseJson = await creationResponse.json();
+  deps.log.info(`Environment response: ${JSON.stringify(createionResponseJson)}`);
+  if (!createionResponseJson.data.createEnvironment.id) throw Error("Environment ID not found in response");
+  const multiBranchResponse = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      query: `
         query teamBranches($teamId: String!) {
           teamBranches: activeTeamBranches(teamId: $teamId) {
             id
@@ -37068,23 +36595,22 @@ async function findOrCreateEnvironment(deps, apiConfig, { baseEnvironmentId, bra
           }
         }
       `,
-            variables: {
-                teamId: qaWolfTeamId,
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const multiBranchResponseJson = (await multiBranchResponse.json());
-    const hasMultipleBranches = multiBranchResponseJson.data.teamBranches.length > 1;
-    if (!hasMultipleBranches)
-        return createionResponseJson.data.createEnvironment.id;
-    const sourceEnvironmentResponse = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            query: `
+      variables: {
+        teamId: qaWolfTeamId
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const multiBranchResponseJson = await multiBranchResponse.json();
+  const hasMultipleBranches = multiBranchResponseJson.data.teamBranches.length > 1;
+  if (!hasMultipleBranches) return createionResponseJson.data.createEnvironment.id;
+  const sourceEnvironmentResponse = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      query: `
         query EnvironmentWithBranch($where: EnvironmentWhereUniqueInput!) {
           environment(where: $where) {
             id
@@ -37092,27 +36618,26 @@ async function findOrCreateEnvironment(deps, apiConfig, { baseEnvironmentId, bra
           }
         }
       `,
-            variables: {
-                where: {
-                    id: baseEnvironmentId,
-                },
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const sourceEnvironmentJson = (await sourceEnvironmentResponse.json());
-    const baseBranchId = sourceEnvironmentJson.data.environment.branchId;
-    const targetBranchId = createionResponseJson.data.createEnvironment.branchId;
-    if (!baseBranchId)
-        throw Error("Base branch ID not found in response");
-    deps.log.info(`Promoting workflows from branch ${baseBranchId} to ${targetBranchId}`);
-    const promotionResponse = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            query: `
+      variables: {
+        where: {
+          id: baseEnvironmentId
+        }
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const sourceEnvironmentJson = await sourceEnvironmentResponse.json();
+  const baseBranchId = sourceEnvironmentJson.data.environment.branchId;
+  const targetBranchId = createionResponseJson.data.createEnvironment.branchId;
+  if (!baseBranchId) throw Error("Base branch ID not found in response");
+  deps.log.info(`Promoting workflows from branch ${baseBranchId} to ${targetBranchId}`);
+  const promotionResponse = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      query: `
         mutation PromoteWorkflowsToBranch(
           $sourceTeamBranchId: String!
           $targetTeamBranchId: String!
@@ -37124,75 +36649,64 @@ async function findOrCreateEnvironment(deps, apiConfig, { baseEnvironmentId, bra
           )
         }
       `,
-            variables: {
-                sourceTeamBranchId: baseBranchId,
-                targetTeamBranchId: targetBranchId,
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const promotionResponseJson = await promotionResponse.json();
-    if (!promotionResponseJson)
-        throw Error("Promotion failed");
-    return createionResponseJson.data.createEnvironment.id;
+      variables: {
+        sourceTeamBranchId: baseBranchId,
+        targetTeamBranchId: targetBranchId
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const promotionResponseJson = await promotionResponse.json();
+  if (!promotionResponseJson) throw Error("Promotion failed");
+  return createionResponseJson.data.createEnvironment.id;
 }
-//# sourceMappingURL=findOrCreateEnvironment.js.map
+__name(findOrCreateEnvironment, "findOrCreateEnvironment");
 
-/***/ }),
-
-/***/ 5562:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.findOrCreateTrigger = findOrCreateTrigger;
-const constants_1 = __nccwpck_require__(9894);
-// eslint-disable-next-line @qawolf/restrict-names -- Migration debt, clean up when convenient
+// src/lib/sdk/domain/legacy_previewTesting/findOrCreateTrigger.ts
 async function findOrCreateTrigger(deps, apiConfig, args) {
-    const { branch, environmentId, pr, qaWolfTeamId, repositoryId, tags } = args;
-    const triggerName = `Deployments of ${pr ? `PR #${pr.number} - ${pr.title}` : `branch ${branch}`}`;
-    const retrievalResponse = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            query: `query getTriggersForBranch($where: TriggerWhereInput) {
+  const { branch, environmentId, pr, qaWolfTeamId, repositoryId, tags } = args;
+  const triggerName = `Deployments of ${pr ? `PR #${pr.number} - ${pr.title}` : `branch ${branch}`}`;
+  const retrievalResponse = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      query: `query getTriggersForBranch($where: TriggerWhereInput) {
         triggers(where: $where) {
           environment_id
           id
         }
       }
       `,
-            variables: {
-                where: {
-                    environment_id: {
-                        equals: environmentId,
-                    },
-                    name: {
-                        equals: triggerName,
-                    },
-                },
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const retrievalResponseJson = (await retrievalResponse.json());
-    if (retrievalResponseJson.data.triggers[0]) {
-        const triggerId = retrievalResponseJson.data.triggers[0].id;
-        const environmentId = retrievalResponseJson.data.triggers[0].environment_id;
-        deps.log.info(`Trigger with name ${triggerName} already exists with id ${triggerId} in environment ${environmentId}`);
-        return triggerId;
-    }
-    const creationResponse = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            operationName: "createTrigger",
-            query: `
+      variables: {
+        where: {
+          environment_id: {
+            equals: environmentId
+          },
+          name: {
+            equals: triggerName
+          }
+        }
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const retrievalResponseJson = await retrievalResponse.json();
+  if (retrievalResponseJson.data.triggers[0]) {
+    const triggerId2 = retrievalResponseJson.data.triggers[0].id;
+    const environmentId2 = retrievalResponseJson.data.triggers[0].environment_id;
+    deps.log.info(`Trigger with name ${triggerName} already exists with id ${triggerId2} in environment ${environmentId2}`);
+    return triggerId2;
+  }
+  const creationResponse = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      operationName: "createTrigger",
+      query: `
         mutation createTrigger(
           $codeHostingServiceRepositoryId: ID!,
           $deploymentBranches: String!,
@@ -37218,134 +36732,70 @@ async function findOrCreateTrigger(deps, apiConfig, args) {
           }
         }
       `,
-            variables: {
-                codeHostingServiceRepositoryId: repositoryId,
-                deploymentBranches: branch,
-                deploymentEnvironment: constants_1.previewDeploymentType,
-                deploymentProvider: "generic",
-                environmentId,
-                name: triggerName,
-                tag_ids: tags?.map((tag) => tag.id),
-                teamId: qaWolfTeamId,
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const creationResponseJson = (await creationResponse.json());
-    deps.log.info(`Trigger response: ${JSON.stringify(creationResponseJson)}`);
-    const triggerId = creationResponseJson.data?.createTrigger?.id;
-    if (!triggerId)
-        throw Error("Trigger ID not found in response");
-    deps.log.info(`Trigger created with ID: ${triggerId}`);
-    return triggerId;
+      variables: {
+        codeHostingServiceRepositoryId: repositoryId,
+        deploymentBranches: branch,
+        deploymentEnvironment: previewDeploymentType,
+        deploymentProvider: "generic",
+        environmentId,
+        name: triggerName,
+        tag_ids: tags?.map((tag) => tag.id),
+        teamId: qaWolfTeamId
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const creationResponseJson = await creationResponse.json();
+  deps.log.info(`Trigger response: ${JSON.stringify(creationResponseJson)}`);
+  const triggerId = creationResponseJson.data?.createTrigger?.id;
+  if (!triggerId) throw Error("Trigger ID not found in response");
+  deps.log.info(`Trigger created with ID: ${triggerId}`);
+  return triggerId;
 }
-//# sourceMappingURL=findOrCreateTrigger.js.map
+__name(findOrCreateTrigger, "findOrCreateTrigger");
 
-/***/ }),
-
-/***/ 1202:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.findRepositoryIdByName = findRepositoryIdByName;
-const constants_1 = __nccwpck_require__(9894);
-async function findRepositoryIdByName(deps, apiConfig, { headRepoFullName, }) {
-    const response = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            query: `
+// src/lib/sdk/domain/legacy_previewTesting/findRepositoryIdByName.ts
+async function findRepositoryIdByName(deps, apiConfig, { headRepoFullName }) {
+  const response = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      query: `
         query codeHostingServiceRepositories($where: CodeHostingServiceRepositoryWhereInput) {
           codeHostingServiceRepositories(where: $where) {
             id
           }
         }
       `,
-            variables: {
-                where: {
-                    externalFullName: {
-                        equals: headRepoFullName,
-                    },
-                },
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const responseJson = (await response.json());
-    deps.log.info(`Repository response: ${JSON.stringify(responseJson)}`);
-    const repositories = responseJson.data.codeHostingServiceRepositories;
-    if (!repositories[0])
-        return;
-    return repositories[0].id;
-}
-//# sourceMappingURL=findRepositoryIdByName.js.map
-
-/***/ }),
-
-/***/ 8203:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getEnvironmentIdForBranch = getEnvironmentIdForBranch;
-const constants_1 = __nccwpck_require__(9894);
-async function getEnvironmentIdForBranch(deps, apiConfig, branch) {
-    const response = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            query: `
-        query getTriggersForBranch($where: TriggerWhereInput) {
-          triggers(where: $where) {
-            id
-            environment_id
+      variables: {
+        where: {
+          externalFullName: {
+            equals: headRepoFullName
           }
         }
-      `,
-            variables: {
-                where: {
-                    deployment_branches: {
-                        contains: branch,
-                    },
-                },
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const responseJson = (await response.json());
-    deps.log.info(`Trigger response: ${JSON.stringify(responseJson)}`);
-    const triggers = responseJson.data.triggers;
-    if (!triggers || !triggers[0])
-        throw Error(`No environment found for branch: ${branch}`);
-    return triggers[0].environment_id;
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const responseJson = await response.json();
+  deps.log.info(`Repository response: ${JSON.stringify(responseJson)}`);
+  const repositories = responseJson.data.codeHostingServiceRepositories;
+  if (!repositories[0]) return;
+  return repositories[0].id;
 }
-//# sourceMappingURL=getEnvironmentIdForBranch.js.map
+__name(findRepositoryIdByName, "findRepositoryIdByName");
 
-/***/ }),
-
-/***/ 1035:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getEnvironmentVariablesFromEnvironment = getEnvironmentVariablesFromEnvironment;
-const constants_1 = __nccwpck_require__(9894);
-async function getEnvironmentVariablesFromEnvironment(deps, apiConfig, { environmentId, }) {
-    const retrievalResponse = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            query: `
+// src/lib/sdk/domain/legacy_previewTesting/getEnvironmentVariablesFromEnvironment.ts
+async function getEnvironmentVariablesFromEnvironment(deps, apiConfig, { environmentId }) {
+  const retrievalResponse = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      query: `
         query EnvironmentVariables($where: EnvironmentWhereUniqueInput!) {
           environment(where: $where) {
             id
@@ -37353,40 +36803,31 @@ async function getEnvironmentVariablesFromEnvironment(deps, apiConfig, { environ
           }
         }
       `,
-            variables: {
-                where: {
-                    id: environmentId,
-                },
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const retrievalResponseJson = (await retrievalResponse.json());
-    if (!retrievalResponseJson.data.environment) {
-        throw Error(`Environment not found with ID: ${environmentId}. Please check the environment ID is correct.`);
-    }
-    return JSON.parse(retrievalResponseJson.data.environment.variablesJSON);
+      variables: {
+        where: {
+          id: environmentId
+        }
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const retrievalResponseJson = await retrievalResponse.json();
+  if (!retrievalResponseJson.data.environment) {
+    throw Error(`Environment not found with ID: ${environmentId}. Please check the environment ID is correct.`);
+  }
+  return JSON.parse(retrievalResponseJson.data.environment.variablesJSON);
 }
-//# sourceMappingURL=getEnvironmentVariablesFromEnvironment.js.map
+__name(getEnvironmentVariablesFromEnvironment, "getEnvironmentVariablesFromEnvironment");
 
-/***/ }),
-
-/***/ 931:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.getTagsFromGenericTriggerInEnvironment = getTagsFromGenericTriggerInEnvironment;
-const constants_1 = __nccwpck_require__(9894);
-async function getTagsFromGenericTriggerInEnvironment(deps, apiConfig, { environmentId, }) {
-    const retrievalResponse = await deps.fetch(constants_1.qawolfGraphQLEndpoint, {
-        body: JSON.stringify({
-            query: `
+// src/lib/sdk/domain/legacy_previewTesting/getTagsFromEnvironment.ts
+async function getTagsFromGenericTriggerInEnvironment(deps, apiConfig, { environmentId }) {
+  const retrievalResponse = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      query: `
         query GenericTriggerTagsFromEnvironment($where: EnvironmentWhereUniqueInput!) {
           environment(where: $where) {
             id
@@ -37400,718 +36841,908 @@ async function getTagsFromGenericTriggerInEnvironment(deps, apiConfig, { environ
           }
         }
       `,
-            variables: {
-                where: {
-                    id: environmentId,
-                },
-            },
-        }),
-        headers: {
-            Authorization: `Bearer ${apiConfig.apiKey}`,
-            "Content-Type": "application/json",
-        },
-        method: "post",
-    });
-    const retrievalResponseJson = (await retrievalResponse.json());
-    if (!retrievalResponseJson.data.environment) {
-        throw Error(`Environment not found with ID: ${environmentId}. Please check the environment ID is correct.`);
-    }
-    return retrievalResponseJson.data.environment.triggers[0]?.tags?.map((tag) => tag);
+      variables: {
+        where: {
+          id: environmentId
+        }
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const retrievalResponseJson = await retrievalResponse.json();
+  if (!retrievalResponseJson.data.environment) {
+    throw Error(`Environment not found with ID: ${environmentId}. Please check the environment ID is correct.`);
+  }
+  return retrievalResponseJson.data.environment.triggers[0]?.tags?.map((tag) => tag);
 }
-//# sourceMappingURL=getTagsFromEnvironment.js.map
+__name(getTagsFromGenericTriggerInEnvironment, "getTagsFromGenericTriggerInEnvironment");
 
-/***/ }),
+// src/lib/sdk/domain/legacy_previewTesting/createEnvironmentAction.ts
+var createEnvironmentAction = /* @__PURE__ */ __name(async (deps, apiConfig, { baseEnvironmentId, branch, deploymentUrl, headRepoFullName, pr, qaWolfTeamId, variables }) => {
+  deps.log.info("Creating environment for pull request...");
+  const environmentId = await findOrCreateEnvironment(deps, apiConfig, {
+    baseEnvironmentId,
+    branch,
+    pr,
+    qaWolfTeamId
+  });
+  deps.log.info(`Environment created with ID: ${environmentId}`);
+  const baseEnvironmentVariablesJSON = baseEnvironmentId ? await getEnvironmentVariablesFromEnvironment(deps, apiConfig, {
+    environmentId: baseEnvironmentId
+  }) : {};
+  if (typeof baseEnvironmentVariablesJSON !== "object") {
+    deps.log.error("baseEnvironmentVariablesJSON is not an object");
+    throw Error("baseEnvironmentVariablesJSON is not an object");
+  }
+  const combinedEnvironmentVariables = {
+    ...baseEnvironmentVariablesJSON,
+    ...variables,
+    ...deploymentUrl ? {
+      URL: deploymentUrl
+    } : {}
+  };
+  deps.log.info("Creating environment variables...");
+  await createEnvironmentVariables(deps, apiConfig, {
+    environmentId,
+    variables: combinedEnvironmentVariables
+  });
+  deps.log.info(`Environment variables created for environment ID: ${environmentId}`);
+  deps.log.info("Retrieving repository ID...");
+  const repositoryId = await findRepositoryIdByName(deps, apiConfig, {
+    headRepoFullName
+  });
+  deps.log.info(repositoryId ? `Repository ID retrieved: ${repositoryId}` : "Repository not integrated with QA Wolf, enable it in the settings page to get PR comments and checks.");
+  const tags = baseEnvironmentId ? await getTagsFromGenericTriggerInEnvironment(deps, apiConfig, {
+    environmentId: baseEnvironmentId
+  }) : undefined;
+  deps.log.info(`Tags retrieved: ${tags?.map((tag) => tag.name).join(", ")}`);
+  deps.log.info("Creating trigger for deployment...");
+  await findOrCreateTrigger(deps, apiConfig, {
+    branch,
+    environmentId,
+    pr,
+    qaWolfTeamId,
+    repositoryId,
+    tags
+  });
+}, "createEnvironmentAction");
 
-/***/ 4500:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+// src/lib/sdk/domain/legacy_previewTesting/deleteEnvironment.ts
+async function deleteEnvironment(deps, apiConfig, { environmentId }) {
+  await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      query: `
+        mutation deleteEnvironment($environmentId: ID!) {
+          deleteEnvironment(environment_id: $environmentId) {
+            id
+          }
+        }
+      `,
+      variables: {
+        environmentId
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  deps.log.info(`Environment deleted with ID: ${environmentId}`);
+}
+__name(deleteEnvironment, "deleteEnvironment");
 
-"use strict";
+// src/lib/sdk/domain/legacy_previewTesting/getEnvironmentIdForBranch.ts
+async function getEnvironmentIdForBranch(deps, apiConfig, branch) {
+  const response = await deps.fetch(qawolfGraphQLEndpoint, {
+    body: JSON.stringify({
+      query: `
+        query getTriggersForBranch($where: TriggerWhereInput) {
+          triggers(where: $where) {
+            id
+            environment_id
+          }
+        }
+      `,
+      variables: {
+        where: {
+          deployment_branches: {
+            contains: branch
+          }
+        }
+      }
+    }),
+    headers: {
+      Authorization: `Bearer ${apiConfig.apiKey}`,
+      "Content-Type": "application/json"
+    },
+    method: "post"
+  });
+  const responseJson = await response.json();
+  deps.log.info(`Trigger response: ${JSON.stringify(responseJson)}`);
+  const triggers = responseJson.data.triggers;
+  if (!triggers || !triggers[0]) throw Error(`No environment found for branch: ${branch}`);
+  return triggers[0].environment_id;
+}
+__name(getEnvironmentIdForBranch, "getEnvironmentIdForBranch");
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.testPreview = testPreview;
-exports.removeEnvironment = removeEnvironment;
-const attempt_deploy_1 = __nccwpck_require__(289);
-const constants_1 = __nccwpck_require__(9894);
-const createEnvironmentAction_1 = __nccwpck_require__(4515);
-const deleteEnvironmentAction_1 = __nccwpck_require__(340);
+// src/lib/sdk/domain/legacy_previewTesting/deleteEnvironmentAction.ts
+var deleteEnvironmentAction = /* @__PURE__ */ __name(async (deps, apiConfig, { branch }) => {
+  deps.log.info("Retrieving environment ID for deletion...");
+  const environmentId = await getEnvironmentIdForBranch(deps, apiConfig, branch);
+  deps.log.info(`Deleting environment with ID: ${environmentId}`);
+  await deleteEnvironment(deps, apiConfig, {
+    environmentId
+  });
+}, "deleteEnvironmentAction");
+
+// src/lib/sdk/domain/legacy_previewTesting/index.ts
 async function testPreview(deps, apiConfig, config) {
-    await (0, createEnvironmentAction_1.createEnvironmentAction)(deps, apiConfig, {
-        baseEnvironmentId: config.baseEnvironmentId,
-        branch: config.branch,
-        deploymentUrl: config.deploymentUrl,
-        headRepoFullName: config.repoFullName,
-        pr: config.pr,
-        qaWolfTeamId: config.qaWolfTeamId,
-        variables: config.variables,
-    });
-    return (0, attempt_deploy_1.attemptNotifyDeploy)(deps, apiConfig, {
-        branch: config.branch,
-        commitUrl: config.commitUrl,
-        deploymentType: constants_1.previewDeploymentType,
-        deploymentUrl: config.deploymentUrl,
-        sha: config.sha,
-        variables: config.variables,
-    });
+  await createEnvironmentAction(deps, apiConfig, {
+    baseEnvironmentId: config.baseEnvironmentId,
+    branch: config.branch,
+    deploymentUrl: config.deploymentUrl,
+    headRepoFullName: config.repoFullName,
+    pr: config.pr,
+    qaWolfTeamId: config.qaWolfTeamId,
+    variables: config.variables
+  });
+  return attemptNotifyDeploy(deps, apiConfig, {
+    branch: config.branch,
+    commitUrl: config.commitUrl,
+    deploymentType: previewDeploymentType,
+    deploymentUrl: config.deploymentUrl,
+    sha: config.sha,
+    variables: config.variables
+  });
 }
+__name(testPreview, "testPreview");
 async function removeEnvironment(deps, apiConfig, config) {
-    await (0, deleteEnvironmentAction_1.deleteEnvironmentAction)(deps, apiConfig, config);
+  await deleteEnvironmentAction(deps, apiConfig, config);
 }
-//# sourceMappingURL=index.js.map
+__name(removeEnvironment, "removeEnvironment");
 
-/***/ }),
+// src/lib/api/ci-greenlight.ts
+async function fetchCiGreenlightStatus({ apiKey, serviceBase, userAgent }, { runId }, { fetch: localFetch, log }) {
+  try {
+    const resp = await localFetch(new URL(`/api/v0/ci-greenlight/${encodeURIComponent(runId)}`, serviceBase), {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "User-Agent": userAgent
+      }
+    });
+    if (resp.ok) {
+      const greenlightStatus = await resp.json();
+      return {
+        greenlightStatus,
+        httpStatus: resp.status,
+        ok: true
+      };
+    }
+    await logFetchError({
+      log,
+      methodName: "fetchCiGreenlightStatus",
+      response: resp
+    });
+    if (resp.status === 404) {
+      return {
+        canRetry: true,
+        errorType: "not-found",
+        httpStatus: resp.status,
+        ok: false
+      };
+    }
+    if (resp.status >= 500) {
+      return {
+        canRetry: true,
+        errorType: "server",
+        httpStatus: resp.status,
+        ok: false
+      };
+    }
+    return {
+      canRetry: false,
+      errorType: "client",
+      httpStatus: resp.status,
+      ok: false
+    };
+  } catch (e) {
+    return {
+      canRetry: true,
+      errorType: "network",
+      httpStatus: 0,
+      ok: false
+    };
+  }
+}
+__name(fetchCiGreenlightStatus, "fetchCiGreenlightStatus");
 
-/***/ 9218:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.pollCiGreenlightStatus = pollCiGreenlightStatus;
-const ci_greenlight_1 = __nccwpck_require__(2704);
-const utils_1 = __nccwpck_require__(4793);
-// If you change these values, make sure you update the JSDoc
-// comments in the PollConfig type.
-const safeDefaults = {
-    abortOnSuperseded: false,
-    maxRetries: 10,
-    pollTimeout: 120 * 60 * 1000,
-    retryInterval: 10 * 1000,
-    runInProgressInterval: 30 * 1000,
-    runUnderReviewInterval: 60 * 1000,
+// src/lib/sdk/domain/poll-ci-greenlight.ts
+var safeDefaults = {
+  abortOnSuperseded: false,
+  maxRetries: 10,
+  pollTimeout: 120 * 60 * 1e3,
+  retryInterval: 10 * 1e3,
+  runInProgressInterval: 30 * 1e3,
+  runUnderReviewInterval: 60 * 1e3
 };
-async function pollCiGreenlightStatus(deps, apiConfig, { onRunStageChanged: onRunStageChanged = () => undefined, runId, ...pollConfig }) {
-    let retries = 0;
-    const { log } = deps;
-    const { abortOnSuperseded = safeDefaults.abortOnSuperseded, maxRetries = safeDefaults.maxRetries, pollTimeout = safeDefaults.pollTimeout, retryInterval = safeDefaults.retryInterval, runInProgressInterval = safeDefaults.runInProgressInterval, runUnderReviewInterval = safeDefaults.runUnderReviewInterval, } = pollConfig;
-    let currentStatus = undefined;
-    const startedAt = Date.now();
-    let hasTimedOut = false;
-    while (!(hasTimedOut = Date.now() - startedAt > pollTimeout)) {
-        const responseState = await (0, ci_greenlight_1.fetchCiGreenlightStatus)(apiConfig, {
-            runId,
-        }, deps);
-        if (!responseState.ok && !responseState.canRetry) {
-            log.error(`🚫 Unrecoverable error (status ${responseState.httpStatus}) from CI greenlight, aborting.`);
-            return {
-                abortReason: "4XX-client-error",
-                httpStatus: responseState.httpStatus,
-                outcome: "aborted",
-            };
+async function pollCiGreenlightStatus(deps, apiConfig, { onRunStageChanged = /* @__PURE__ */ __name(() => undefined, "onRunStageChanged"), runId, ...pollConfig }) {
+  let retries = 0;
+  const { log } = deps;
+  const { abortOnSuperseded = safeDefaults.abortOnSuperseded, maxRetries = safeDefaults.maxRetries, pollTimeout = safeDefaults.pollTimeout, retryInterval = safeDefaults.retryInterval, runInProgressInterval = safeDefaults.runInProgressInterval, runUnderReviewInterval = safeDefaults.runUnderReviewInterval } = pollConfig;
+  let currentStatus = undefined;
+  const startedAt = Date.now();
+  let hasTimedOut = false;
+  while (!(hasTimedOut = Date.now() - startedAt > pollTimeout)) {
+    const responseState = await fetchCiGreenlightStatus(apiConfig, {
+      runId
+    }, deps);
+    if (!responseState.ok && !responseState.canRetry) {
+      log.error(`\u{1F6AB} Unrecoverable error (status ${responseState.httpStatus}) from CI greenlight, aborting.`);
+      return {
+        abortReason: "4XX-client-error",
+        httpStatus: responseState.httpStatus,
+        outcome: "aborted"
+      };
+    }
+    if (!responseState.ok) {
+      retries += 1;
+      if (retries > maxRetries) {
+        log.error(`\u{1F6AB} Unrecoverable error${responseState.httpStatus ? ` (status ${responseState.httpStatus})` : ""} from CI greenlight, aborting after ${maxRetries} attempts.`);
+        if (responseState.errorType === "network") {
+          return {
+            abortReason: "network-error",
+            httpStatus: undefined,
+            outcome: "aborted"
+          };
         }
-        if (!responseState.ok) {
-            // This is a non-OK retryable status.
-            retries += 1;
-            if (retries > maxRetries) {
-                log.error(`🚫 Unrecoverable error${responseState.httpStatus
-                    ? ` (status ${responseState.httpStatus})`
-                    : ""} from CI greenlight, aborting after ${maxRetries} attempts.`);
-                if (responseState.errorType === "network") {
-                    return {
-                        abortReason: "network-error",
-                        httpStatus: undefined,
-                        outcome: "aborted",
-                    };
-                }
-                let abortReason = "XXX-other-http-code";
-                if (responseState.errorType === "not-found")
-                    abortReason = "404-run-not-found";
-                else if (responseState.errorType === "server")
-                    abortReason = "5XX-server-error";
-                else
-                    (0, utils_1.assertType)(responseState);
-                return {
-                    abortReason,
-                    httpStatus: responseState.httpStatus,
-                    outcome: "aborted",
-                };
-            }
-            const { errorType, httpStatus } = responseState;
-            const retryLabel = `${httpStatus ? ` (status ${httpStatus})` : ""}, will try again... (${retries}/${maxRetries})`;
-            if (errorType === "network")
-                log.warn(`❌ Network error${retryLabel}`);
-            else if (errorType === "not-found")
-                log.info(`⏳ Run not found${retryLabel}`);
-            else if (errorType === "server")
-                log.warn(`❌ Server error${retryLabel}`);
-            await (0, utils_1.sleep)(retryInterval);
-            continue;
-        }
-        // responseState.ok === true
-        retries = 0;
-        const { greenlightStatus } = responseState;
-        const previousStatus = currentStatus;
-        currentStatus = greenlightStatus;
-        if (!previousStatus ||
-            previousStatus.runStage !== greenlightStatus.runStage) {
-            try {
-                await onRunStageChanged(greenlightStatus, previousStatus);
-            }
-            catch (e) {
-                log.error(`Error in onRunStageChanged callback`, e);
-            }
-        }
-        const urlInfo = `See ${greenlightStatus.relevantRunUrl}`;
-        const { greenlight, relevantRunId, relevantRunUrl, relevantRunWithBugsUrl, rootRunId, rootRunUrl, runStage, } = greenlightStatus;
-        if (rootRunId !== relevantRunId) {
-            const supersedingDetails = `
+        let abortReason = "XXX-other-http-code";
+        if (responseState.errorType === "not-found") abortReason = "404-run-not-found";
+        else if (responseState.errorType === "server") abortReason = "5XX-server-error";
+        else ;
+        return {
+          abortReason,
+          httpStatus: responseState.httpStatus,
+          outcome: "aborted"
+        };
+      }
+      const { errorType, httpStatus } = responseState;
+      const retryLabel = `${httpStatus ? ` (status ${httpStatus})` : ""}, will try again... (${retries}/${maxRetries})`;
+      if (errorType === "network") log.warn(`\u274C Network error${retryLabel}`);
+      else if (errorType === "not-found") log.info(`\u23F3 Run not found${retryLabel}`);
+      else if (errorType === "server") log.warn(`\u274C Server error${retryLabel}`);
+      await sleep(retryInterval);
+      continue;
+    }
+    retries = 0;
+    const { greenlightStatus } = responseState;
+    const previousStatus = currentStatus;
+    currentStatus = greenlightStatus;
+    if (!previousStatus || previousStatus.runStage !== greenlightStatus.runStage) {
+      try {
+        await onRunStageChanged(greenlightStatus, previousStatus);
+      } catch (e) {
+        log.error(`Error in onRunStageChanged callback`, e);
+      }
+    }
+    const urlInfo = `See ${greenlightStatus.relevantRunUrl}`;
+    const { greenlight, relevantRunId, relevantRunUrl, relevantRunWithBugsUrl, rootRunId, rootRunUrl, runStage } = greenlightStatus;
+    if (rootRunId !== relevantRunId) {
+      const supersedingDetails = `
   - Root: ${rootRunUrl}
   - Superseding: ${relevantRunUrl}`;
-            if (abortOnSuperseded) {
-                log.warn(`❌ Aborting due to superseded run (option 'abortOnSuperseded' is enabled).${supersedingDetails}`);
-                return {
-                    abortReason: "superseded-run",
-                    httpStatus: undefined,
-                    outcome: "aborted",
-                };
-            }
-            log.info(`Root run was superseded:${supersedingDetails}`);
-        }
-        if (runStage === "completed") {
-            const { blockingBugsCount, blockingBugUrls = [], nonBlockingBugsCount, nonBlockingBugUrls = [], } = greenlightStatus;
-            const blockingBugList = blockingBugUrls
-                .map((url) => `\n• ${url}`)
-                .join("");
-            const nonBlockingBugList = nonBlockingBugUrls
-                .map((url) => `\n• ${url}`)
-                .join("");
-            const bugsListInText = `${blockingBugUrls.length > 0 ? `\nBLOCKING BUGS:${blockingBugList}` : ""}${nonBlockingBugUrls.length > 0
-                ? `\nNON BLOCKING BUGS:${nonBlockingBugList}`
-                : ""}`;
-            if (greenlight) {
-                log.info(`✅ Run passed and no blocking bugs found${nonBlockingBugsCount > 0
-                    ? ` and ${nonBlockingBugsCount} non-blocking bug${(0, utils_1.pluralize)(nonBlockingBugsCount)} found`
-                    : ""}.\n${urlInfo}`);
-                return { greenlightStatus, outcome: "success" };
-            }
-            else {
-                log.warn(`❌ Run failed and ${blockingBugsCount} blocking bug${(0, utils_1.pluralize)(blockingBugsCount)} found${nonBlockingBugsCount
-                    ? ` and ${nonBlockingBugsCount} non-blocking bug${(0, utils_1.pluralize)(nonBlockingBugsCount)}`
-                    : ""}.\nSee ${relevantRunWithBugsUrl}\n` +
-                    "You may review the priority of certain bugs to mark these non-blocking and retry the job.\n" +
-                    bugsListInText);
-                return { greenlightStatus, outcome: "failed" };
-            }
-        }
-        if (runStage === "canceled") {
-            log.info(`🚫 Run was canceled. Aborting... Please contact support.\n${urlInfo}`);
-            return {
-                abortReason: "run-canceled",
-                httpStatus: undefined,
-                outcome: "aborted",
-            };
-        }
-        // Non-terminal run stages
-        if (hasTimedOut) {
-            log.warn(`❌ Poll timed out after ${pollTimeout / 1000}s. Aborting...`);
-            return {
-                abortReason: "poll-timed-out",
-                httpStatus: undefined,
-                outcome: "aborted",
-            };
-        }
-        if (runStage === "initializing") {
-            log.info(`⏳ Run is in progress... ${urlInfo}`);
-            await (0, utils_1.sleep)(runInProgressInterval);
-        }
-        else if (runStage === "underReview") {
-            log.info(`🕵️  Run is under review... ${urlInfo}`);
-            await (0, utils_1.sleep)(runUnderReviewInterval);
-        }
-        else
-            throw Error(`Unexpected run stage: ${runStage}`);
+      if (abortOnSuperseded) {
+        log.warn(`\u274C Aborting due to superseded run (option 'abortOnSuperseded' is enabled).${supersedingDetails}`);
+        return {
+          abortReason: "superseded-run",
+          httpStatus: undefined,
+          outcome: "aborted"
+        };
+      }
+      log.info(`Root run was superseded:${supersedingDetails}`);
     }
-    log.warn(`❌ Poll timed out after ${pollTimeout / 1000}s. Aborting...`);
-    return {
+    if (runStage === "completed") {
+      const { blockingBugsCount, blockingBugUrls = [], nonBlockingBugsCount, nonBlockingBugUrls = [] } = greenlightStatus;
+      const blockingBugList = blockingBugUrls.map((url) => `
+\u2022 ${url}`).join("");
+      const nonBlockingBugList = nonBlockingBugUrls.map((url) => `
+\u2022 ${url}`).join("");
+      const bugsListInText = `${blockingBugUrls.length > 0 ? `
+BLOCKING BUGS:${blockingBugList}` : ""}${nonBlockingBugUrls.length > 0 ? `
+NON BLOCKING BUGS:${nonBlockingBugList}` : ""}`;
+      if (greenlight) {
+        log.info(`\u2705 Run passed and no blocking bugs found${nonBlockingBugsCount > 0 ? ` and ${nonBlockingBugsCount} non-blocking bug${pluralize(nonBlockingBugsCount)} found` : ""}.
+${urlInfo}`);
+        return {
+          greenlightStatus,
+          outcome: "success"
+        };
+      } else {
+        log.warn(`\u274C Run failed and ${blockingBugsCount} blocking bug${pluralize(blockingBugsCount)} found${nonBlockingBugsCount ? ` and ${nonBlockingBugsCount} non-blocking bug${pluralize(nonBlockingBugsCount)}` : ""}.
+See ${relevantRunWithBugsUrl}
+You may review the priority of certain bugs to mark these non-blocking and retry the job.
+` + bugsListInText);
+        return {
+          greenlightStatus,
+          outcome: "failed"
+        };
+      }
+    }
+    if (runStage === "canceled") {
+      log.info(`\u{1F6AB} Run was canceled. Aborting... Please contact support.
+${urlInfo}`);
+      return {
+        abortReason: "run-canceled",
+        httpStatus: undefined,
+        outcome: "aborted"
+      };
+    }
+    if (hasTimedOut) {
+      log.warn(`\u274C Poll timed out after ${pollTimeout / 1e3}s. Aborting...`);
+      return {
         abortReason: "poll-timed-out",
         httpStatus: undefined,
-        outcome: "aborted",
-    };
+        outcome: "aborted"
+      };
+    }
+    if (runStage === "initializing") {
+      log.info(`\u23F3 Run is in progress... ${urlInfo}`);
+      await sleep(runInProgressInterval);
+    } else if (runStage === "underReview") {
+      log.info(`\u{1F575}\uFE0F  Run is under review... ${urlInfo}`);
+      await sleep(runUnderReviewInterval);
+    } else throw Error(`Unexpected run stage: ${runStage}`);
+  }
+  log.warn(`\u274C Poll timed out after ${pollTimeout / 1e3}s. Aborting...`);
+  return {
+    abortReason: "poll-timed-out",
+    httpStatus: undefined,
+    outcome: "aborted"
+  };
 }
-//# sourceMappingURL=poll-ci-greenlight.js.map
+__name(pollCiGreenlightStatus, "pollCiGreenlightStatus");
 
-/***/ }),
-
-/***/ 2799:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.makeVCSBranchTestingSDK = makeVCSBranchTestingSDK;
-const tslib_1 = __nccwpck_require__(36);
-const fetch_1 = __nccwpck_require__(3704);
-const log_1 = __nccwpck_require__(4734);
-const serviceBase_1 = __nccwpck_require__(1919);
-const notify_vcs_branch_build_deployed_1 = __nccwpck_require__(3385);
-const notify_vcs_branch_merge_canceled_1 = __nccwpck_require__(6093);
-const notify_vcs_branch_merge_completed_1 = __nccwpck_require__(7569);
-tslib_1.__exportStar(__nccwpck_require__(5985), exports);
-tslib_1.__exportStar(__nccwpck_require__(8315), exports);
-function makeVCSBranchTestingSDK({ apiKey, serviceBase = serviceBase_1.defaultServiceBase, }, { fetch = fetch_1.defaultFetch, log = log_1.defaultLogDriver, } = {}) {
-    const deps = { fetch, log };
-    const apiConfig = { apiKey, serviceBase };
+// src/lib/api/graphql.ts
+var GraphQLBadResponseError = class GraphQLBadResponseError2 extends Error {
+  static {
+    __name(this, "GraphQLBadResponseError");
+  }
+  constructor(message) {
+    super(message);
+    this.name = "GraphQLBadResponseError";
+  }
+};
+function mapErrorCodeToAbortReason({ errorCode, log }) {
+  switch (errorCode) {
+    case "BAD_USER_INPUT":
+      return "invalid-input";
+    case "FORBIDDEN":
+      return "forbidden";
+    case "INTERNAL":
+      return "server-error";
+    case "UNAUTHENTICATED":
+      return "unauthenticated";
+    default:
+      log.error(`Unknown error code. ${errorCode}`);
+      return "server-error";
+  }
+}
+__name(mapErrorCodeToAbortReason, "mapErrorCodeToAbortReason");
+async function qawolfGraphql({ apiConfig: { apiKey, serviceBase, userAgent }, deps: { fetch: localFetch, log }, name, query: queryGql, variables }) {
+  try {
+    const response = await localFetch(new URL(`/api/graphql`, serviceBase), {
+      body: JSON.stringify({
+        query: queryGql,
+        variables
+      }),
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "User-Agent": userAgent
+      },
+      method: "post"
+    });
+    let rawBody;
+    try {
+      rawBody = await response.json();
+    } catch (e) {
+      throw new GraphQLBadResponseError(`[GraphQL] Unexpected response schema. Not valid JSON body.`);
+    }
+    if ("errors" in rawBody) {
+      for (const error of rawBody.errors) log.warn(`\u274C [GraphQL] error: ${error.message}`);
+      const firstError = rawBody.errors[0];
+      const eventId = firstError?.extensions?.eventId;
+      const errorCode = firstError?.extensions?.code;
+      return {
+        abortReason: mapErrorCodeToAbortReason({
+          errorCode,
+          log
+        }),
+        eventId,
+        isGqlError: true
+      };
+    }
+    if (!("data" in rawBody)) {
+      throw new GraphQLBadResponseError(`[GraphQL] Unexpected response schema. Missing 'data' in response body. This is a bug.`);
+    }
+    if (!(name in rawBody.data)) {
+      throw new GraphQLBadResponseError(`[GraphQL] Unexpected response schema. Missing 'data.${name}' in response body. This is a bug.`);
+    }
     return {
-        notifyVCSBranchBuildDeployed: notify_vcs_branch_build_deployed_1.notifyVCSBranchBuildDeployed.bind(null, deps, apiConfig),
-        notifyVCSBranchMergeCanceled: notify_vcs_branch_merge_canceled_1.notifyVCSBranchMergeCanceled.bind(null, deps, apiConfig),
-        notifyVCSBranchMergeCompleted: notify_vcs_branch_merge_completed_1.notifyVCSBranchMergeCompleted.bind(null, deps, apiConfig),
+      isGqlError: false,
+      responseBody: rawBody.data[name]
     };
+  } catch (e) {
+    if (e instanceof GraphQLBadResponseError) throw e;
+    log.error(`\u274C [GraphQL] network error: ${e instanceof Error ? e.message : e}`);
+    return {
+      abortReason: "network-error",
+      isGqlError: true
+    };
+  }
 }
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 5985:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.pullRequestDetailsToEnvironmentAlias = pullRequestDetailsToEnvironmentAlias;
-exports.arbitraryStringToEnvironmentAlias = arbitraryStringToEnvironmentAlias;
-const tslib_1 = __nccwpck_require__(36);
-const slugify_1 = tslib_1.__importDefault(__nccwpck_require__(2283));
-/**
- * Creates a compliant environment alias from pull request details.
- */
-function pullRequestDetailsToEnvironmentAlias({ codeHostingServiceOrganization, codeHostingServiceRepositoryName, pullRequestIdentifier, }) {
-    return arbitraryStringToEnvironmentAlias(`${codeHostingServiceOrganization}-${codeHostingServiceRepositoryName}-pr-${pullRequestIdentifier}`);
+__name(qawolfGraphql, "qawolfGraphql");
+function logGraphQLError({ log, methodName, payload }) {
+  const eventIdSuffix = payload.eventId ? ` (Event ID: ${payload.eventId})` : "";
+  switch (payload.abortReason) {
+    case "forbidden":
+      log.error(`\u274C [${methodName}] Forbidden. Aborting${eventIdSuffix}`);
+      break;
+    case "invalid-input":
+      log.error(`\u274C [${methodName}] Bad GraphQL input. This is a bug. Aborting${eventIdSuffix}`);
+      break;
+    case "network-error":
+      log.error(`\u274C [${methodName}] Network error. Aborting${eventIdSuffix}`);
+      break;
+    case "server-error":
+      log.error(`\u274C [${methodName}] Server error. Aborting${eventIdSuffix}`);
+      break;
+    case "unauthenticated":
+      log.error(`\u274C [${methodName}] Unauthenticated. Aborting${eventIdSuffix}`);
+      break;
+    default:
+      payload.abortReason;
+      log.error(`\u274C [${methodName}] Unknown error. ${payload.abortReason} This is a bug${eventIdSuffix}`);
+  }
 }
-/**
- * Creates a compliant environment alias from an arbitrary string.
- */
-function arbitraryStringToEnvironmentAlias(arbitraryString) {
-    return (0, slugify_1.default)(arbitraryString, { lower: true });
-}
-//# sourceMappingURL=aliases.js.map
+__name(logGraphQLError, "logGraphQLError");
 
-/***/ }),
-
-/***/ 4435:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.domainFailureToAbortResult = domainFailureToAbortResult;
-const utils_1 = __nccwpck_require__(4793);
-function domainFailureToAbortResult({ log, methodName, result, }) {
-    switch (result.failureCode) {
-        case "base-environment-not-found":
-            log.error(`❌ [${methodName}] Base environment not found. Aborting.`);
-            return {
-                abortReason: result.failureCode,
-                outcome: "aborted",
-            };
-        case "base-trigger-not-found":
-            log.error(`❌ [${methodName}] Base trigger not found. A QA Wolf representative should set this up for you. Aborting.`);
-            return {
-                abortReason: result.failureCode,
-                outcome: "aborted",
-            };
-        case "head-environment-not-found":
-            log.error(`❌ [${methodName}] Head environment not found. Aborting.`);
-            return {
-                abortReason: result.failureCode,
-                outcome: "aborted",
-            };
-        case "head-trigger-not-found":
-            log.error(`❌ [${methodName}] Head trigger not found. Aborting.`);
-            return {
-                abortReason: result.failureCode,
-                outcome: "aborted",
-            };
-        case "invalid-input":
-            log.error(`❌ [${methodName}] Invalid input: ${result.failureDetails} Aborting.`);
-            return {
-                abortReason: result.failureCode,
-                outcome: "aborted",
-            };
-        case "non-ephemeral-head-environment-violation":
-            log.error(`❌ [${methodName}] Non-ephemeral head environment violation. Aborting.`);
-            return {
-                abortReason: result.failureCode,
-                outcome: "aborted",
-            };
-        case "run-creation-failed":
-            log.error(`❌ [${methodName}] Run creation failed: ${result.failureDetails}. Aborting.`);
-            return {
-                abortReason: result.failureCode,
-                outcome: "aborted",
-            };
-        default:
-            (0, utils_1.assertType)(result.failureCode);
-            throw Error(`[${methodName}] Unreachable code detected. This is a bug.`);
+// src/lib/api/notify-vcs-branch-merge-canceled-mutation.ts
+var mutationName = "notifyVCSBranchMergeCanceled";
+var mutationGql = `
+mutation NotifyVCSBranchMergeCanceled($headEnvironmentAlias: String!) {
+  ${mutationName}(headEnvironmentAlias: $headEnvironmentAlias) {
+    outcome
+    failureCode
+    failureDetails
+  }
+}`;
+async function callNotifyVCSBranchMergeCanceledMutation(deps, apiConfig, { headEnvironmentAlias }) {
+  return qawolfGraphql({
+    apiConfig,
+    deps,
+    name: mutationName,
+    query: mutationGql,
+    variables: {
+      headEnvironmentAlias
     }
+  });
 }
-//# sourceMappingURL=domain-failure.js.map
+__name(callNotifyVCSBranchMergeCanceledMutation, "callNotifyVCSBranchMergeCanceledMutation");
 
-/***/ }),
-
-/***/ 6852:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.graphQLErrorToAbortResult = graphQLErrorToAbortResult;
-const utils_1 = __nccwpck_require__(4793);
-function graphQLErrorToAbortResult({ graphQLPayload, log, methodName, }) {
-    switch (graphQLPayload.errorCode) {
-        case "bad-input":
-            log.error(`❌ [${methodName}] Bad GraphQL input. This is a bug. Aborting.`);
-            return { abortReason: "invalid-input", outcome: "aborted" };
-        case "forbidden":
-            log.error(`❌ [${methodName}] Forbidden. Aborting.`);
-            return { abortReason: "forbidden", outcome: "aborted" };
-        case "internal":
-        case "unknown":
-            return { abortReason: "server-error", outcome: "aborted" };
-        case "network-error":
-            log.error(`❌ [${methodName}] Network error. Aborting.`);
-            return { abortReason: "network-error", outcome: "aborted" };
-        case "unauthenticated":
-            log.error(`❌ [${methodName}] Unauthenticated. Aborting.`);
-            return { abortReason: "unauthenticated", outcome: "aborted" };
-        default:
-            (0, utils_1.assertType)(graphQLPayload.errorCode);
-            throw Error("Unreachable code detected. This is a bug.");
-    }
+// src/lib/sdk/domain/vcsBranchTesting/lib/domain-failure.ts
+function domainFailureToAbortResult({ log, methodName, result }) {
+  switch (result.failureCode) {
+    case "base-environment-not-found":
+      log.error(`\u274C [${methodName}] Base environment not found. Aborting.`);
+      return {
+        abortReason: result.failureCode,
+        outcome: "aborted"
+      };
+    case "base-trigger-not-found":
+      log.error(`\u274C [${methodName}] Base trigger not found. A QA Wolf representative should set this up for you. Aborting.`);
+      return {
+        abortReason: result.failureCode,
+        outcome: "aborted"
+      };
+    case "head-environment-not-found":
+      log.error(`\u274C [${methodName}] Head environment not found. Aborting.`);
+      return {
+        abortReason: result.failureCode,
+        outcome: "aborted"
+      };
+    case "head-trigger-not-found":
+      log.error(`\u274C [${methodName}] Head trigger not found. Aborting.`);
+      return {
+        abortReason: result.failureCode,
+        outcome: "aborted"
+      };
+    case "invalid-input":
+      log.error(`\u274C [${methodName}] Invalid input: ${result.failureDetails} Aborting.`);
+      return {
+        abortReason: result.failureCode,
+        outcome: "aborted"
+      };
+    case "non-ephemeral-head-environment-violation":
+      log.error(`\u274C [${methodName}] Non-ephemeral head environment violation. Aborting.`);
+      return {
+        abortReason: result.failureCode,
+        outcome: "aborted"
+      };
+    case "repository-not-found":
+      log.error(`\u274C [${methodName}] Repository not found: ${result.failureDetails} Aborting.`);
+      return {
+        abortReason: result.failureCode,
+        outcome: "aborted"
+      };
+    case "run-creation-failed":
+      log.error(`\u274C [${methodName}] Run creation failed: ${result.failureDetails}. Aborting.`);
+      return {
+        abortReason: result.failureCode,
+        outcome: "aborted"
+      };
+    default:
+      result.failureCode;
+      throw Error(`[${methodName}] Unreachable code detected. This is a bug. ${result.failureCode}`);
+  }
 }
-//# sourceMappingURL=graphql-error.js.map
+__name(domainFailureToAbortResult, "domainFailureToAbortResult");
 
-/***/ }),
-
-/***/ 9358:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.retryWithExponentialBackoff = retryWithExponentialBackoff;
-const utils_1 = __nccwpck_require__(4793);
-async function retryWithExponentialBackoff({ log, maxRetries, methodName, retriableAbortReasons, runOnce, }) {
-    let attemptNumber = 0;
-    let result;
-    do {
-        attemptNumber++;
-        log.info(`🔁 [${methodName}] Attempt ${attemptNumber}/${maxRetries + 1}.`);
-        result = await runOnce();
-        // If success or non-recoverable error, return immediately
-        if (result.outcome === "success" ||
-            !retriableAbortReasons.includes(result.abortReason))
-            return result;
-        // Exit if max retries reached
-        if (attemptNumber >= maxRetries + 1)
-            return result;
-        // Else, backoff and retry
-        const backoffMs = (0, utils_1.getBackoffMs)(attemptNumber);
-        const secondsApproximation = (backoffMs / 1000).toFixed(1);
-        log.warn(`⏳ [${methodName}] Retrying in ${secondsApproximation} seconds.`);
-        await (0, utils_1.sleep)(backoffMs);
-    } while (true);
+// src/lib/sdk/domain/vcsBranchTesting/lib/retry.ts
+async function retryWithExponentialBackoff({ log, maxRetries, methodName, retriableAbortReasons, runOnce }) {
+  let attemptNumber = 0;
+  let result;
+  do {
+    attemptNumber++;
+    log.info(`\u{1F501} [${methodName}] Attempt ${attemptNumber}/${maxRetries + 1}.`);
+    result = await runOnce();
+    if (result.outcome === "success" || !retriableAbortReasons.includes(result.abortReason)) return result;
+    if (attemptNumber >= maxRetries + 1) return result;
+    const backoffMs = getBackoffMs(attemptNumber);
+    const secondsApproximation = (backoffMs / 1e3).toFixed(1);
+    log.warn(`\u23F3 [${methodName}] Retrying in ${secondsApproximation} seconds.`);
+    await sleep(backoffMs);
+  } while (true);
 }
-//# sourceMappingURL=retry.js.map
+__name(retryWithExponentialBackoff, "retryWithExponentialBackoff");
 
-/***/ }),
-
-/***/ 3385:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.notifyVCSBranchBuildDeployed = notifyVCSBranchBuildDeployed;
-const notify_vcs_branch_build_deployed_mutation_1 = __nccwpck_require__(1857);
-const utils_1 = __nccwpck_require__(4793);
-const domain_failure_1 = __nccwpck_require__(4435);
-const graphql_error_1 = __nccwpck_require__(6852);
-const retry_1 = __nccwpck_require__(9358);
-async function runNotifyVCSBranchBuildDeployedOnce(deps, apiConfig, input) {
-    const { baseEnvironmentsMapping, baseVcsBranch, concurrencyLimit, headEnvironmentAlias, headEnvironmentName, headEnvironmentVariables, headVcsBranch, headVcsCommitId, headVcsCommitUrl, pullOrMergeRequestNumber, } = input;
-    const log = deps.log;
-    const baseEnvironmentAlias = baseEnvironmentsMapping?.find((mapping) => mapping.vcsBranch === baseVcsBranch)?.environmentAlias;
-    let finalConcurrencyLimit = concurrencyLimit;
-    if (typeof concurrencyLimit === "number") {
-        if (concurrencyLimit === Infinity)
-            finalConcurrencyLimit = 0;
-        else if (Number.isNaN(concurrencyLimit) ||
-            !Number.isInteger(concurrencyLimit)) {
-            log.error(`❌ [notifyVCSBranchBuildDeployed] Invalid concurrency limit '${concurrencyLimit}'. Must be a positive integer.`);
-            return {
-                abortReason: "invalid-input",
-                outcome: "aborted",
-            };
-        }
-        if (concurrencyLimit < 0) {
-            log.error(`❌ [notifyVCSBranchBuildDeployed] Invalid concurrency limit '${concurrencyLimit}'. Must be a positive integer.`);
-            return {
-                abortReason: "invalid-input",
-                outcome: "aborted",
-            };
-        }
-    }
-    const resp = await (0, notify_vcs_branch_build_deployed_mutation_1.callNotifyVCSBranchBuildDeployedMutation)(deps, apiConfig, {
-        baseEnvironmentAlias,
-        baseVcsBranch,
-        concurrencyLimit: finalConcurrencyLimit,
-        headEnvironmentAlias,
-        headEnvironmentName,
-        headEnvironmentVariables,
-        headVcsBranch,
-        headVcsCommitId,
-        headVcsCommitUrl,
-        pullOrMergeRequestNumber,
-    });
-    if (resp.isGqlError) {
-        return (0, graphql_error_1.graphQLErrorToAbortResult)({
-            graphQLPayload: resp,
-            log,
-            methodName: "notifyVCSBranchBuildDeployed",
-        });
-    }
-    const result = resp.responseBody;
-    if (result.outcome === "success") {
-        const codeHostingInfo = result.codeHostingServiceInstallationPlatform == null
-            ? ""
-            : `, and code hosting service integration '${result.codeHostingServiceInstallationPlatform}'.`;
-        log.info(`✅ [notifyVCSBranchBuildDeployed] Success. Run was deployed with ID: '${result.runId}'${codeHostingInfo}`);
-        return {
-            codeHostingServiceInstallationType: result.codeHostingServiceInstallationPlatform ?? undefined,
-            outcome: "success",
-            runId: result.runId,
-        };
-    }
-    (0, utils_1.assertType)(result.outcome);
-    return (0, domain_failure_1.domainFailureToAbortResult)({
-        log,
-        methodName: "notifyVCSBranchBuildDeployed",
-        result,
-    });
-}
-async function notifyVCSBranchBuildDeployed(deps, apiConfig, input) {
-    const { maxRetries = 10 } = input;
-    return (0, retry_1.retryWithExponentialBackoff)({
-        log: deps.log,
-        maxRetries,
-        methodName: "notifyVCSBranchBuildDeployed",
-        retriableAbortReasons: [
-            "network-error",
-            "server-error",
-            "run-creation-failed",
-        ],
-        runOnce: () => runNotifyVCSBranchBuildDeployedOnce(deps, apiConfig, input),
-    });
-}
-//# sourceMappingURL=notify-vcs-branch-build-deployed.js.map
-
-/***/ }),
-
-/***/ 6093:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.notifyVCSBranchMergeCanceled = notifyVCSBranchMergeCanceled;
-const notify_vcs_branch_merge_canceled_mutation_1 = __nccwpck_require__(8625);
-const utils_1 = __nccwpck_require__(4793);
-const domain_failure_1 = __nccwpck_require__(4435);
-const graphql_error_1 = __nccwpck_require__(6852);
-const retry_1 = __nccwpck_require__(9358);
+// src/lib/sdk/domain/vcsBranchTesting/notify-vcs-branch-merge-canceled.ts
 async function runNotifyVCSMergeCanceledOnce(deps, apiConfig, input) {
-    const log = deps.log;
-    const { headEnvironmentAlias } = input;
-    const resp = await (0, notify_vcs_branch_merge_canceled_mutation_1.callNotifyVCSBranchMergeCanceledMutation)(deps, apiConfig, {
-        headEnvironmentAlias,
+  const log = deps.log;
+  const { headEnvironmentAlias } = input;
+  const resp = await callNotifyVCSBranchMergeCanceledMutation(deps, apiConfig, {
+    headEnvironmentAlias
+  });
+  if (resp.isGqlError) {
+    logGraphQLError({
+      log,
+      methodName: "notifyVCSBranchMergeCanceled",
+      payload: resp
     });
-    if (resp.isGqlError) {
-        return (0, graphql_error_1.graphQLErrorToAbortResult)({
-            graphQLPayload: resp,
-            log,
-            methodName: "notifyVCSBranchMergeCanceled",
-        });
-    }
-    const result = resp.responseBody;
-    if (result.outcome === "success") {
-        log.info(`✅ [notifyVCSBranchMergeCanceled] Successfully notified the CI system that the merge was canceled.`);
-        return {
-            outcome: "success",
-        };
-    }
-    (0, utils_1.assertType)(result.outcome);
-    return (0, domain_failure_1.domainFailureToAbortResult)({
-        log,
-        methodName: "notifyVCSBranchMergeCanceled",
-        result,
-    });
-}
-async function notifyVCSBranchMergeCanceled(deps, apiConfig, input) {
-    const { maxRetries = 10 } = input;
-    return (0, retry_1.retryWithExponentialBackoff)({
-        log: deps.log,
-        maxRetries,
-        methodName: "notifyVCSBranchMergeCanceled",
-        retriableAbortReasons: [
-            "network-error",
-            "server-error",
-        ],
-        runOnce: () => runNotifyVCSMergeCanceledOnce(deps, apiConfig, input),
-    });
-}
-//# sourceMappingURL=notify-vcs-branch-merge-canceled.js.map
-
-/***/ }),
-
-/***/ 7569:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.notifyVCSBranchMergeCompleted = notifyVCSBranchMergeCompleted;
-const notify_vcs_branch_merge_completed_mutation_1 = __nccwpck_require__(7328);
-const utils_1 = __nccwpck_require__(4793);
-const domain_failure_1 = __nccwpck_require__(4435);
-const graphql_error_1 = __nccwpck_require__(6852);
-const retry_1 = __nccwpck_require__(9358);
-async function runNotifyVCSBranchMergeCompletedOnce(deps, apiConfig, input) {
-    const log = deps.log;
-    const { baseEnvironmentsMapping, baseVcsBranch: vcsBaseBranch } = input;
-    const baseEnvironmentAlias = baseEnvironmentsMapping?.find((mapping) => mapping.vcsBranch === vcsBaseBranch)?.environmentAlias;
-    if (baseEnvironmentAlias === undefined) {
-        log.info(`ℹ️ [notifyVCSBranchMergeCompleted] Could not find a base environment for VCS branch '${vcsBaseBranch}'. Fall back to use the default base environment`);
-    }
-    const resp = await (0, notify_vcs_branch_merge_completed_mutation_1.callNotifyVCSBranchMergeCompletedMutation)(deps, apiConfig, {
-        baseEnvironmentAlias,
-        headEnvironmentAlias: input.headEnvironmentAlias,
-    });
-    if (resp.isGqlError) {
-        return (0, graphql_error_1.graphQLErrorToAbortResult)({
-            graphQLPayload: resp,
-            log,
-            methodName: "notifyVCSBranchMergeCompleted",
-        });
-    }
-    const result = resp.responseBody;
-    if (result.outcome === "success") {
-        log.info(`✅ [notifyVCSBranchMergeCompleted] Successfully notified the CI system that the merge was completed.`);
-        return {
-            outcome: "success",
-        };
-    }
-    (0, utils_1.assertType)(result.outcome);
-    return (0, domain_failure_1.domainFailureToAbortResult)({
-        log,
-        methodName: "notifyVCSBranchMergeCompleted",
-        result,
-    });
-}
-async function notifyVCSBranchMergeCompleted(deps, apiConfig, input) {
-    const { maxRetries = 10 } = input;
-    return (0, retry_1.retryWithExponentialBackoff)({
-        log: deps.log,
-        maxRetries,
-        methodName: "notifyVCSBranchMergeCompleted",
-        retriableAbortReasons: [
-            "network-error",
-            "server-error",
-        ],
-        runOnce: () => runNotifyVCSBranchMergeCompletedOnce(deps, apiConfig, input),
-    });
-}
-//# sourceMappingURL=notify-vcs-branch-merge-completed.js.map
-
-/***/ }),
-
-/***/ 8315:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-//# sourceMappingURL=types.js.map
-
-/***/ }),
-
-/***/ 3907:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.makeQaWolfSdk = makeQaWolfSdk;
-const tslib_1 = __nccwpck_require__(36);
-const utils_1 = __nccwpck_require__(4793);
-const fetch_1 = __nccwpck_require__(3704);
-const log_1 = __nccwpck_require__(4734);
-const serviceBase_1 = __nccwpck_require__(1919);
-const attempt_deploy_1 = __nccwpck_require__(289);
-const generate_signed_url_for_run_inputs_executables_1 = __nccwpck_require__(7549);
-const generate_signed_url_for_team_storage_1 = __nccwpck_require__(2160);
-const index_1 = __nccwpck_require__(4500);
-const poll_ci_greenlight_1 = __nccwpck_require__(9218);
-const vcsBranchTesting_1 = __nccwpck_require__(2799);
-function makeQaWolfSdk({ apiKey, serviceBase = serviceBase_1.defaultServiceBase, }, { fetch = fetch_1.defaultFetch, log = log_1.defaultLogDriver, } = {}) {
-    if (typeof fetch !== "function") {
-        throw Error(`QA Wolf CI-SDK requires fetch to be defined. Make sure you are using NodeJS 18+, OR pass a fetch polyfill to the makeQaWolfSdk function.
-We recommend 'undici' package for that purpose. See the Requirement section of our README for more guidance.`);
-    }
-    const deps = {
-        // Versions of fetch may have different default timeouts. For consistency, we explicitly set it to 60 seconds here.
-        fetch: (0, utils_1.buildFetchWithTimeout)(fetch, 60000),
-        log,
-    };
-    const apiConfig = { apiKey, serviceBase };
     return {
-        attemptNotifyDeploy: attempt_deploy_1.attemptNotifyDeploy.bind(null, deps, apiConfig),
-        /**
-         * @deprecated Use `experimental_vcsBranchTesting` instead.
-         */
-        experimental_removeEnvironment: index_1.removeEnvironment.bind(null, deps, apiConfig),
-        /**
-         * @deprecated Use `experimental_vcsBranchTesting` instead.
-         */
-        experimental_testPreview: index_1.testPreview.bind(null, deps, apiConfig),
-        experimental_vcsBranchTesting: (0, vcsBranchTesting_1.makeVCSBranchTestingSDK)(apiConfig, deps),
-        generateSignedUrlForRunInputsExecutablesStorage: generate_signed_url_for_run_inputs_executables_1.generateSignedUrlForRunInputsExecutablesStorage.bind(null, deps, apiConfig),
-        generateSignedUrlForTempTeamStorage: generate_signed_url_for_team_storage_1.generateSignedUrlForTempTeamStorage.bind(null, deps, apiConfig),
-        pollCiGreenlightStatus: poll_ci_greenlight_1.pollCiGreenlightStatus.bind(null, deps, apiConfig),
+      abortReason: resp.abortReason,
+      eventId: resp.eventId,
+      outcome: "aborted"
     };
+  }
+  const result = resp.responseBody;
+  if (result.outcome === "success") {
+    log.info(`\u2705 [notifyVCSBranchMergeCanceled] Successfully notified the CI system that the merge was canceled.`);
+    return {
+      outcome: "success"
+    };
+  }
+  result.outcome;
+  return domainFailureToAbortResult({
+    log,
+    methodName: "notifyVCSBranchMergeCanceled",
+    result
+  });
 }
-tslib_1.__exportStar(__nccwpck_require__(2799), exports);
+__name(runNotifyVCSMergeCanceledOnce, "runNotifyVCSMergeCanceledOnce");
+async function notifyVCSBranchMergeCanceled(deps, apiConfig, input) {
+  const { maxRetries = 10 } = input;
+  return retryWithExponentialBackoff({
+    log: deps.log,
+    maxRetries,
+    methodName: "notifyVCSBranchMergeCanceled",
+    retriableAbortReasons: [
+      "network-error",
+      "server-error"
+    ],
+    runOnce: /* @__PURE__ */ __name(() => runNotifyVCSMergeCanceledOnce(deps, apiConfig, input), "runOnce")
+  });
+}
+__name(notifyVCSBranchMergeCanceled, "notifyVCSBranchMergeCanceled");
+
+// src/lib/api/notify-vcs-branch-merge-completed-mutation.ts
+var mutationName2 = "notifyVCSBranchMergeCompleted";
+var mutationGql2 = `
+mutation NotifyVCSBranchMergeCompleted($baseEnvironmentAlias: String, $headEnvironmentAlias: String!) {
+${mutationName2}(baseEnvironmentAlias: $baseEnvironmentAlias, headEnvironmentAlias: $headEnvironmentAlias) {
+    outcome
+    failureCode
+    failureDetails
+  }
+}`;
+async function callNotifyVCSBranchMergeCompletedMutation(deps, apiConfig, { baseEnvironmentAlias, headEnvironmentAlias }) {
+  return qawolfGraphql({
+    apiConfig,
+    deps,
+    name: mutationName2,
+    query: mutationGql2,
+    variables: {
+      baseEnvironmentAlias: baseEnvironmentAlias ?? null,
+      headEnvironmentAlias
+    }
+  });
+}
+__name(callNotifyVCSBranchMergeCompletedMutation, "callNotifyVCSBranchMergeCompletedMutation");
+
+// src/lib/sdk/domain/vcsBranchTesting/notify-vcs-branch-merge-completed.ts
+async function runNotifyVCSBranchMergeCompletedOnce(deps, apiConfig, input) {
+  const log = deps.log;
+  const { baseEnvironmentsMapping, baseVcsBranch: vcsBaseBranch } = input;
+  const baseEnvironmentAlias = baseEnvironmentsMapping?.find((mapping) => mapping.vcsBranch === vcsBaseBranch)?.environmentAlias;
+  if (baseEnvironmentAlias === undefined) {
+    log.info(`\u2139\uFE0F [notifyVCSBranchMergeCompleted] Could not find a base environment for VCS branch '${vcsBaseBranch}'. Fall back to use the default base environment`);
+  }
+  const resp = await callNotifyVCSBranchMergeCompletedMutation(deps, apiConfig, {
+    baseEnvironmentAlias,
+    headEnvironmentAlias: input.headEnvironmentAlias
+  });
+  if (resp.isGqlError) {
+    logGraphQLError({
+      log,
+      methodName: "notifyVCSBranchMergeCompleted",
+      payload: resp
+    });
+    return {
+      abortReason: resp.abortReason,
+      eventId: resp.eventId,
+      outcome: "aborted"
+    };
+  }
+  const result = resp.responseBody;
+  if (result.outcome === "success") {
+    log.info(`\u2705 [notifyVCSBranchMergeCompleted] Successfully notified the CI system that the merge was completed.`);
+    return {
+      outcome: "success"
+    };
+  }
+  result.outcome;
+  return domainFailureToAbortResult({
+    log,
+    methodName: "notifyVCSBranchMergeCompleted",
+    result
+  });
+}
+__name(runNotifyVCSBranchMergeCompletedOnce, "runNotifyVCSBranchMergeCompletedOnce");
+async function notifyVCSBranchMergeCompleted(deps, apiConfig, input) {
+  const { maxRetries = 10 } = input;
+  return retryWithExponentialBackoff({
+    log: deps.log,
+    maxRetries,
+    methodName: "notifyVCSBranchMergeCompleted",
+    retriableAbortReasons: [
+      "network-error",
+      "server-error"
+    ],
+    runOnce: /* @__PURE__ */ __name(() => runNotifyVCSBranchMergeCompletedOnce(deps, apiConfig, input), "runOnce")
+  });
+}
+__name(notifyVCSBranchMergeCompleted, "notifyVCSBranchMergeCompleted");
+
+// src/lib/api/notify-vcs-branch-build-deployed-mutation.ts
+var mutationName3 = "notifyVCSBranchBuildDeployed";
+var mutationGql3 = `
+mutation NotifyVCSBranchBuildDeployed(
+  $headVcsCommitId: String!,
+  $baseVcsBranch: String,
+  $headEnvironmentVariablesJson: String!,
+  $baseEnvironmentAlias: String,
+  $headEnvironmentAlias: String!,
+  $concurrencyLimit: Int,
+  $headEnvironmentName: String,
+  $headVcsBranch: String,
+  $headVcsCommitUrl: String,
+  $pullOrMergeRequestNumber: Int
+) {
+    ${mutationName3}(
+      headVcsCommitId: $headVcsCommitId,
+      baseVcsBranch: $baseVcsBranch,
+      headEnvironmentVariablesJson: $headEnvironmentVariablesJson,
+      baseEnvironmentAlias: $baseEnvironmentAlias,
+      headEnvironmentAlias: $headEnvironmentAlias,
+      concurrencyLimit: $concurrencyLimit,
+      headEnvironmentName: $headEnvironmentName,
+      headVcsBranch: $headVcsBranch,
+      headVcsCommitUrl: $headVcsCommitUrl,
+      pullOrMergeRequestNumber: $pullOrMergeRequestNumber
+    ) {
+    outcome
+    codeHostingServiceInstallationPlatform
+    failureCode
+    failureDetails
+    runId
+  }
+}`;
+async function callNotifyVCSBranchBuildDeployedMutation(deps, apiConfig, { baseEnvironmentAlias, baseVcsBranch, concurrencyLimit, headEnvironmentAlias, headEnvironmentName, headEnvironmentVariables, headVcsBranch, headVcsCommitId, headVcsCommitUrl, pullOrMergeRequestNumber }) {
+  return qawolfGraphql({
+    apiConfig,
+    deps,
+    name: mutationName3,
+    query: mutationGql3,
+    variables: {
+      baseEnvironmentAlias: baseEnvironmentAlias ?? null,
+      baseVcsBranch: baseVcsBranch ?? null,
+      concurrencyLimit: concurrencyLimit ?? null,
+      headEnvironmentAlias,
+      headEnvironmentName,
+      headEnvironmentVariablesJson: JSON.stringify(headEnvironmentVariables),
+      headVcsBranch: headVcsBranch ?? null,
+      headVcsCommitId,
+      headVcsCommitUrl: headVcsCommitUrl ?? null,
+      pullOrMergeRequestNumber: pullOrMergeRequestNumber ?? null
+    }
+  });
+}
+__name(callNotifyVCSBranchBuildDeployedMutation, "callNotifyVCSBranchBuildDeployedMutation");
+
+// src/lib/sdk/domain/vcsBranchTesting/notifyVCSBranchBuildDeployed/index.ts
+async function runNotifyVCSBranchBuildDeployedOnce(deps, apiConfig, input) {
+  const { baseEnvironmentsMapping, baseVcsBranch, concurrencyLimit, headEnvironmentAlias, headEnvironmentName, headEnvironmentVariables, headVcsBranch, headVcsCommitId, headVcsCommitUrl, pullOrMergeRequestNumber } = input;
+  const log = deps.log;
+  const baseEnvironmentAlias = baseEnvironmentsMapping?.find((mapping) => mapping.vcsBranch === baseVcsBranch)?.environmentAlias;
+  let finalConcurrencyLimit = concurrencyLimit;
+  if (typeof concurrencyLimit === "number") {
+    if (concurrencyLimit === Infinity) finalConcurrencyLimit = 0;
+    else if (Number.isNaN(concurrencyLimit) || !Number.isInteger(concurrencyLimit)) {
+      log.error(`\u274C [notifyVCSBranchBuildDeployed] Invalid concurrency limit '${concurrencyLimit}'. Must be a positive integer.`);
+      return {
+        abortReason: "invalid-input",
+        outcome: "aborted"
+      };
+    }
+    if (concurrencyLimit < 0) {
+      log.error(`\u274C [notifyVCSBranchBuildDeployed] Invalid concurrency limit '${concurrencyLimit}'. Must be a positive integer.`);
+      return {
+        abortReason: "invalid-input",
+        outcome: "aborted"
+      };
+    }
+  }
+  const resp = await callNotifyVCSBranchBuildDeployedMutation(deps, apiConfig, {
+    baseEnvironmentAlias,
+    baseVcsBranch,
+    concurrencyLimit: finalConcurrencyLimit,
+    headEnvironmentAlias,
+    headEnvironmentName,
+    headEnvironmentVariables,
+    headVcsBranch,
+    headVcsCommitId,
+    headVcsCommitUrl,
+    pullOrMergeRequestNumber
+  });
+  if (resp.isGqlError) {
+    logGraphQLError({
+      log,
+      methodName: "notifyVCSBranchBuildDeployed",
+      payload: resp
+    });
+    return {
+      abortReason: resp.abortReason,
+      eventId: resp.eventId,
+      outcome: "aborted"
+    };
+  }
+  const result = resp.responseBody;
+  if (result.outcome === "success") {
+    const codeHostingInfo = result.codeHostingServiceInstallationPlatform == null ? "" : `, and code hosting service integration '${result.codeHostingServiceInstallationPlatform}'.`;
+    log.info(`\u2705 [notifyVCSBranchBuildDeployed] Success. Run was deployed with ID: '${result.runId}'${codeHostingInfo}`);
+    return {
+      codeHostingServiceInstallationType: result.codeHostingServiceInstallationPlatform ?? undefined,
+      outcome: "success",
+      runId: result.runId
+    };
+  }
+  result.outcome;
+  return domainFailureToAbortResult({
+    log,
+    methodName: "notifyVCSBranchBuildDeployed",
+    result
+  });
+}
+__name(runNotifyVCSBranchBuildDeployedOnce, "runNotifyVCSBranchBuildDeployedOnce");
+async function notifyVCSBranchBuildDeployed(deps, apiConfig, input) {
+  const { maxRetries = 10 } = input;
+  return retryWithExponentialBackoff({
+    log: deps.log,
+    maxRetries,
+    methodName: "notifyVCSBranchBuildDeployed",
+    retriableAbortReasons: [
+      "network-error",
+      "server-error",
+      "run-creation-failed"
+    ],
+    runOnce: /* @__PURE__ */ __name(() => runNotifyVCSBranchBuildDeployedOnce(deps, apiConfig, input), "runOnce")
+  });
+}
+__name(notifyVCSBranchBuildDeployed, "notifyVCSBranchBuildDeployed");
+function pullRequestDetailsToEnvironmentAlias({ codeHostingServiceOrganization, codeHostingServiceRepositoryName, pullRequestIdentifier }) {
+  return arbitraryStringToEnvironmentAlias(`${codeHostingServiceOrganization}-${codeHostingServiceRepositoryName}-pr-${pullRequestIdentifier}`);
+}
+__name(pullRequestDetailsToEnvironmentAlias, "pullRequestDetailsToEnvironmentAlias");
+function arbitraryStringToEnvironmentAlias(arbitraryString) {
+  return slugify__default.default(arbitraryString, {
+    lower: true
+  });
+}
+__name(arbitraryStringToEnvironmentAlias, "arbitraryStringToEnvironmentAlias");
+
+// src/lib/sdk/domain/vcsBranchTesting/index.ts
+function makeVCSBranchTestingSDK({ apiKey, serviceBase = defaultServiceBase, userAgent = defaultUserAgent }, { fetch = defaultFetch, log = defaultLogDriver } = {}) {
+  const deps = {
+    fetch,
+    log
+  };
+  const apiConfig = {
+    apiKey,
+    serviceBase,
+    userAgent
+  };
+  return {
+    notifyVCSBranchBuildDeployed: notifyVCSBranchBuildDeployed.bind(null, deps, apiConfig),
+    notifyVCSBranchMergeCanceled: notifyVCSBranchMergeCanceled.bind(null, deps, apiConfig),
+    notifyVCSBranchMergeCompleted: notifyVCSBranchMergeCompleted.bind(null, deps, apiConfig)
+  };
+}
+__name(makeVCSBranchTestingSDK, "makeVCSBranchTestingSDK");
+
+// src/lib/sdk/index.ts
+function makeQaWolfSdk({ apiKey, serviceBase = defaultServiceBase, userAgent = defaultUserAgent }, { fetch = defaultFetch, log = defaultLogDriver } = {}) {
+  if (typeof fetch !== "function") {
+    throw Error(`QA Wolf CI-SDK requires fetch to be defined. Make sure you are using NodeJS 18+, OR pass a fetch polyfill to the makeQaWolfSdk function.
+We recommend 'undici' package for that purpose. See the Requirement section of our README for more guidance.`);
+  }
+  const deps = {
+    // Versions of fetch may have different default timeouts. For consistency, we explicitly set it to 60 seconds here.
+    fetch: buildFetchWithTimeout(fetch, 6e4),
+    log
+  };
+  const apiConfig = {
+    apiKey,
+    serviceBase,
+    userAgent
+  };
+  return {
+    attemptNotifyDeploy: attemptNotifyDeploy.bind(null, deps, apiConfig),
+    /**
+    * @deprecated Use `experimental_vcsBranchTesting` instead.
+    */
+    experimental_removeEnvironment: removeEnvironment.bind(null, deps, apiConfig),
+    /**
+    * @deprecated Use `experimental_vcsBranchTesting` instead.
+    */
+    experimental_testPreview: testPreview.bind(null, deps, apiConfig),
+    experimental_vcsBranchTesting: makeVCSBranchTestingSDK(apiConfig, deps),
+    generateSignedUrlForRunInputsExecutablesStorage: generateSignedUrlForRunInputsExecutablesStorage.bind(null, deps, apiConfig),
+    generateSignedUrlForTempTeamStorage: generateSignedUrlForTempTeamStorage.bind(null, deps, apiConfig),
+    pollCiGreenlightStatus: pollCiGreenlightStatus.bind(null, deps, apiConfig)
+  };
+}
+__name(makeQaWolfSdk, "makeQaWolfSdk");
+
+exports.arbitraryStringToEnvironmentAlias = arbitraryStringToEnvironmentAlias;
+exports.makeQaWolfSdk = makeQaWolfSdk;
+exports.makeVCSBranchTestingSDK = makeVCSBranchTestingSDK;
+exports.pullRequestDetailsToEnvironmentAlias = pullRequestDetailsToEnvironmentAlias;
 //# sourceMappingURL=index.js.map
-
-/***/ }),
-
-/***/ 4793:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.buildFetchWithTimeout = void 0;
-exports.sleep = sleep;
-exports.pluralize = pluralize;
-exports.assertType = assertType;
-exports.getBackoffMs = getBackoffMs;
-function sleep(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-}
-function pluralize(count) {
-    return count === 1 ? "" : "s";
-}
-/**
- * Statically verify that provided value is assignable to a desired type
- */
-function assertType(_value) {
-    // noop
-}
-function getBackoffMs(attemptNumber, minWaitMs = 1000, maxWaitMs = 10000) {
-    return Math.min(maxWaitMs, minWaitMs * 1.2 ** attemptNumber);
-}
-const buildFetchWithTimeout = (fetch, timeout) => async (...args) => fetch(args[0], { ...args[1], signal: AbortSignal.timeout(timeout) });
-exports.buildFetchWithTimeout = buildFetchWithTimeout;
-//# sourceMappingURL=utils.js.map
+//# sourceMappingURL=index.js.map
 
 /***/ }),
 
@@ -38120,109 +37751,85 @@ exports.buildFetchWithTimeout = buildFetchWithTimeout;
 
 "use strict";
 
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const tslib_1 = __nccwpck_require__(36);
-tslib_1.__exportStar(__nccwpck_require__(8362), exports);
-tslib_1.__exportStar(__nccwpck_require__(6650), exports);
-tslib_1.__exportStar(__nccwpck_require__(8053), exports);
+
+var core = __nccwpck_require__(7117);
+var zod = __nccwpck_require__(6762);
+
+function _interopDefault (e) { return e && e.__esModule ? e : { default: e }; }
+
+var zod__default = /*#__PURE__*/_interopDefault(zod);
+
+var __defProp = Object.defineProperty;
+var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+
+// src/string.ts
+function stringifyUnknown(value) {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  if (value instanceof Error) {
+    if ("message" in value && typeof value.message === "string") return value.message;
+    return value.toString();
+  }
+  try {
+    const stringified = JSON.stringify(value);
+    return !stringified ? "" : stringified;
+  } catch {
+    return "";
+  }
+}
+__name(stringifyUnknown, "stringifyUnknown");
+
+// src/log.ts
+var coreLogDriver = {
+  error(message, error) {
+    core.error(message + (error ? `
+${stringifyUnknown(error)}` : ""));
+  },
+  info: core.info,
+  warn: core.warning
+};
+var environmentVariablesSchema = zod__default.default.record(zod__default.default.string(), zod__default.default.string());
+var jsonEnvironmentVariablesSchema = zod__default.default.string().transform((str, ctx) => {
+  try {
+    return JSON.parse(str);
+  } catch (error) {
+    ctx.addIssue({
+      code: "custom",
+      message: "input is not a valid JSON-formatted string"
+    });
+    return;
+  }
+}).pipe(environmentVariablesSchema);
+var environmentsMappingSchema = zod__default.default.array(zod__default.default.object({
+  environmentAlias: zod__default.default.string(),
+  vcsBranch: zod__default.default.string()
+}));
+var jsonEnvironmentsMappingSchema = zod__default.default.string().transform((str, ctx) => {
+  try {
+    return JSON.parse(str);
+  } catch (error) {
+    ctx.addIssue({
+      code: "custom",
+      message: "input is not a valid JSON-formatted string"
+    });
+    return;
+  }
+}).pipe(environmentsMappingSchema);
+
+exports.coreLogDriver = coreLogDriver;
+exports.jsonEnvironmentVariablesSchema = jsonEnvironmentVariablesSchema;
+exports.jsonEnvironmentsMappingSchema = jsonEnvironmentsMappingSchema;
+exports.stringifyUnknown = stringifyUnknown;
+//# sourceMappingURL=index.js.map
 //# sourceMappingURL=index.js.map
 
 /***/ }),
 
-/***/ 8362:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ 4147:
+/***/ ((module) => {
 
 "use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.coreLogDriver = void 0;
-const core_1 = __nccwpck_require__(7117);
-const string_1 = __nccwpck_require__(6650);
-exports.coreLogDriver = {
-    error(message, error) {
-        (0, core_1.error)(message + (error ? `\n${(0, string_1.stringifyUnknown)(error)}` : ""));
-    },
-    info: core_1.info,
-    warn: core_1.warning,
-};
-//# sourceMappingURL=log.js.map
-
-/***/ }),
-
-/***/ 6650:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.stringifyUnknown = stringifyUnknown;
-function stringifyUnknown(value) {
-    if (value === null || value === undefined)
-        return "";
-    if (typeof value === "string")
-        return value;
-    if (value instanceof Error) {
-        if ("message" in value && typeof value.message === "string")
-            return value.message;
-        return value.toString();
-    }
-    try {
-        const stringified = JSON.stringify(value);
-        return !stringified ? "" : stringified;
-    }
-    catch {
-        return "";
-    }
-}
-//# sourceMappingURL=string.js.map
-
-/***/ }),
-
-/***/ 8053:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.jsonEnvironmentsMappingSchema = exports.jsonEnvironmentVariablesSchema = void 0;
-const tslib_1 = __nccwpck_require__(36);
-const zod_1 = tslib_1.__importDefault(__nccwpck_require__(6762));
-const environmentVariablesSchema = zod_1.default.record(zod_1.default.string(), zod_1.default.string());
-exports.jsonEnvironmentVariablesSchema = zod_1.default
-    .string()
-    .transform((str, ctx) => {
-    try {
-        return JSON.parse(str);
-    }
-    catch (error) {
-        ctx.addIssue({
-            code: "custom",
-            message: "input is not a valid JSON-formatted string",
-        });
-        return;
-    }
-})
-    .pipe(environmentVariablesSchema);
-const environmentsMappingSchema = zod_1.default.array(zod_1.default.object({
-    environmentAlias: zod_1.default.string(),
-    vcsBranch: zod_1.default.string(),
-}));
-exports.jsonEnvironmentsMappingSchema = zod_1.default
-    .string()
-    .transform((str, ctx) => {
-    try {
-        return JSON.parse(str);
-    }
-    catch (error) {
-        ctx.addIssue({
-            code: "custom",
-            message: "input is not a valid JSON-formatted string",
-        });
-        return;
-    }
-})
-    .pipe(environmentsMappingSchema);
-//# sourceMappingURL=types.js.map
+module.exports = JSON.parse('{"name":"@qawolf/pr-testing-request-new-run-after-deploy-action","version":"v1.1.0","type":"commonjs","main":"dist/index.js","engines":{"node":"^18 || >=20"},"scripts":{"gen":"npm run build","build":"cp tsconfig.json tsconfig.json.bak && cp tsconfig.build.json tsconfig.json && ncc build src/index.ts -o dist ; mv tsconfig.json.bak tsconfig.json","build:clean":"tsc --build --clean && rm -rf ./dist","lint":"cycle-import-scan . && eslint . --ext js,jsx,mjs,ts,tsx --quiet && prettier --check .","lint:fix":"eslint . --ext js,jsx,mjs,ts,tsx --fix --quiet && prettier --log-level=warn --write .","lint:warnings":"eslint . --ext js,jsx,mjs,ts,tsx","test":"jest --passWithNoTests","test:watch":"npm run test -- --watch","tsc:check":"tsc"},"dependencies":{"@actions/core":"^1.10.1","@actions/github":"^6.0.0","@octokit/webhooks-types":"^7.6.1","@qawolf/ci-sdk":"*","@qawolf/ci-utils":"*","tslib":"^2.5.3","zod":"^3.23.8"},"devDependencies":{"@vercel/ncc":"^0.38.1"},"nx":{"targets":{"lint":{"dependsOn":["build"]}}}}');
 
 /***/ })
 
@@ -38273,8 +37880,9 @@ var exports = __webpack_exports__;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const tslib_1 = __nccwpck_require__(36);
 const core = tslib_1.__importStar(__nccwpck_require__(7117));
-const ci_sdk_1 = __nccwpck_require__(5998);
+const ci_sdk_1 = __nccwpck_require__(46);
 const ci_utils_1 = __nccwpck_require__(2765);
+const package_json_1 = __nccwpck_require__(4147);
 const extractRelevantDataFromEvent_1 = __nccwpck_require__(3081);
 const validateInput_1 = __nccwpck_require__(2213);
 const validateSecret_1 = __nccwpck_require__(3753);
@@ -38298,7 +37906,11 @@ async function runGitHubAction() {
         return;
     }
     const { apiKey, qawolfBaseUrl } = validateInputResult;
-    const { experimental_vcsBranchTesting } = (0, ci_sdk_1.makeQaWolfSdk)({ apiKey, serviceBase: qawolfBaseUrl }, {
+    const { experimental_vcsBranchTesting } = (0, ci_sdk_1.makeQaWolfSdk)({
+        apiKey,
+        serviceBase: qawolfBaseUrl,
+        userAgent: `pr-testing-request-new-run-after-deploy-action/${package_json_1.version}`,
+    }, {
         // Replace default log driver with core logging.
         log: ci_utils_1.coreLogDriver,
     });

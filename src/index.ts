@@ -3,6 +3,8 @@ import * as core from "@actions/core";
 import { makeQaWolfSdk } from "@qawolf/ci-sdk";
 import { coreLogDriver, stringifyUnknown } from "@qawolf/ci-utils";
 
+import { version } from "../package.json";
+
 import { extractRelevantDataFromEvent } from "./extractRelevantDataFromEvent";
 import { validateInput } from "./validateInput";
 import { validateSecrets } from "./validateSecret";
@@ -34,7 +36,11 @@ async function runGitHubAction() {
 
   const { apiKey, qawolfBaseUrl } = validateInputResult;
   const { experimental_vcsBranchTesting } = makeQaWolfSdk(
-    { apiKey, serviceBase: qawolfBaseUrl },
+    {
+      apiKey,
+      serviceBase: qawolfBaseUrl,
+      userAgent: `pr-testing-request-new-run-after-deploy-action/${version}`,
+    },
     {
       // Replace default log driver with core logging.
       log: coreLogDriver,

@@ -1,5 +1,7 @@
 # QA Wolf - Request New Run After Deploy Action
 
+> ⚠️ This action will be deprecated on March 31st, 2025. Please use [Notify QA Wolf on Deploy](https://github.com/marketplace/actions/notify-qa-wolf-on-deploy) instead. For help migrating to the new action, follow our [migration guide](https://www.notion.so/qawolf/Setting-up-PR-Testing-03b1adb643b94779be7b4ab77bac755a?pvs=4#d324dd59aa454936a53b08ea3e054174).
+
 This is a GitHub Action for PR testing with QA Wolf. It is intended to be used in a workflow that runs after a deployment action. It will execute your QA Wolf end-to-end test run on the deployed environment.
 
 > ℹ️ Read our [introduction to PR Testing](https://qawolf.notion.site/VCS-Branch-Testing-45be5d10d93249aeb8c1f995d26356ec?pvs=4) to get familiar with core concepts.
